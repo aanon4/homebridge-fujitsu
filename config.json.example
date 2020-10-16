@@ -1,0 +1,25 @@
+"accessories": [
+  {
+    "accessory": "FGLairSmartThermostat",
+    "name": "Fujitsu Mini Spit",
+    "username": "FGLAIR USERNAME",
+    "password": "FGLAIR PASSWORD",
+    "interval": 30,
+    "smart": {
+      "username": "MIIO USERNAME",
+      "password": "MIIO PASSWORD",
+      "country": "cn",
+      "interval": 60,
+      "reference": "THERMOSTAT ROOM",
+      "feelslike": true,
+      "hold": 60,
+      "schedule": [
+        { "day": "Any", "from": "12:00am", "to": "11:59pm", "occupied":  50, "empty":  0, "room": "THERMOSTAT ROOM" },
+        { "day": "Any", "from": "12:00am", "to": "11:59pm", "occupied":  75, "empty":  0, "room": "Kitchen" },
+        { "day": "Any", "from": "12:00am", "to": "11:59pm", "occupied": 100, "empty": 20, "room": "Bedroom" },
+        { "day": "Any", "from": "12:00am", "to": "11:59pm", "occupied": 100, "empty":  0, "room": "Front Room" },
+        { "day": "Any", "from": "12:00am", "to": "11:59pm", "occupied": 100, "empty":  0, "room": "Office" }
+      ]
+    }
+  },
+]

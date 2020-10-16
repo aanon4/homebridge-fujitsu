@@ -1,22 +1,24 @@
 {
-  "name": "homebridge-fujitsu",
-  "version": "0.0.4",
-  "description": "Homebridge accessory for Fujistu Mini-Split AC systems",
+  "name": "homebridge-fujitsu-smart",
+  "version": "0.1.0",
+  "description": "Homebridge accessory for Fujistu Mini-Split AC systems with smart temperature support using Xiaomi sensors",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/smithersDBQ/homebridge-fujitsu.git"
+    "url": "https://github.com/aanon4/homebridge-fujitsu-smart.git"
   },
   "keywords": [
     "homebridge-plugin",
     "homebridge"
   ],
-  "author": "Ryan Beggs",
+  "author": "Tim Wilkinson, Ryan Beggs",
   "license": "MIT",
   "dependencies": {
+    "feels": "^3.0.0",
+    "node-mihome": "0.0.25",
     "node-persist": "^3.0.5"
   },
   "engines": {
