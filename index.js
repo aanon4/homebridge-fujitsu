@@ -76,11 +76,15 @@ function Thermostat(log, config) {
 
     });
 
-    // Enable MIIO sensors (if configured)
+    this.smart = require('./smart');
     this.pauseProgramUntil = 0;
-    if (config.smart) {
-        this.miio = require('./miio');
-        this.miio.start(config.smart);
+    // Enable MIIO sensors (if configured)
+    if (config.smart && config.smart.miio) {
+        const miio = require('./miio');
+        miio.login(config.smart.miio).then(() => {
+            config.smart.sensors = miio;
+            this.smart.start(config.smart);
+        });
     }
 }
 
@@ -111,22 +115,19 @@ Thermostat.prototype.updateAll = function(ctx)
                     // change so we make the target the adjusted too (ie. no diff).
                     // This will persist until the program changes.
                     else if (ctx.adjustedTargetTemperature != adjustedTarget) {
-                        target = adjustedTarget;
-                        if (ctx.miio) {
-                            ctx.pauseProgramUntil = Date.now() + ctx.miio.holdTime;
-                        }
+                        ctx.pauseProgramUntil = Date.now() + ctx.smart.holdTime;
                     }
                     else {
                         // No external change, so target is whatever it currenty is.
                         target = ctx.targetTemperature;
                     }
 
-                    if (ctx.miio) {
-                        ctx.currentTemperature = ctx.miio.currentTempC;
+                    if (ctx.smart.currentTempDiffC !== null) {
+                        ctx.currentTemperature = ctx.smart.currentTempC;
                         if (Date.now() > ctx.pauseProgramUntil) {
                             // Program is different from the program when we last stopped applying
                             // differences, so we can do that again now.
-                            adjustedTarget = target - ctx.miio.currentTempDiffC;
+                            adjustedTarget = target - ctx.smart.currentTempDiffC;
                         }
                     }
                     else {
@@ -243,10 +244,7 @@ Thermostat.prototype.setTargetTemperature = function(val, cb) {
     this.targetTemperature = val;
     this.adjustedTargetTemperature = val;
     this.pauseProgramUntil = 0;
-    if (this.miio)
-    {
-        this.adjustedTargetTemperature -= this.miio.currentTempDiffC;
-    }
+    this.adjustedTargetTemperature -= this.smart.currentTempDiffC;
     this.api.setDeviceProp(this.keyTargetTemperature, Math.round(this.adjustedTargetTemperature * 10), (err) =>
     {
         this.service.updateCharacteristic(Characteristic.TargetTemperature, this.targetTemperature);
