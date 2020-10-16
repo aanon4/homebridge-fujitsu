@@ -6,9 +6,11 @@
     "password": "FGLAIR PASSWORD",
     "interval": 30,
     "smart": {
-      "username": "MIIO USERNAME",
-      "password": "MIIO PASSWORD",
-      "country": "cn",
+      "miio": {
+        "username": "MIIO USERNAME",
+        "password": "MIIO PASSWORD",
+        "region": "cn"
+      },
       "interval": 60,
       "reference": "THERMOSTAT ROOM",
       "feelslike": true,

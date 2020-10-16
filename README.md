@@ -18,9 +18,11 @@
         "password": "FGLAIR PASSWORD",
         "interval": 30,
         "smart": {
-            "username": "MII USERNAME",
-            "password": "MII PASSWORD",
-            "region": "cn",
+            "miio": {
+                "username": "MII USERNAME",
+                "password": "MII PASSWORD",
+                "region": "cn"
+            },
             "reference": "THERMOSTAT ROOM",
             "feelslike": true,
             "hold": 60,
@@ -42,9 +44,9 @@
 | `interval` _(optional)_ | Polling time for thermostat (Default: 60 sec.) |
 | `region` _(optional)_ | Region for thermostat, change for China & E.U. (Default: "us") |
 | `smart` _(optional)_ | Sensor configuration to allow smart adaption of thermostat temperature. |
-| `smart.username` | `Mi Home` Username |
-| `smart.password` | `Mi Home` Password |
-| `smart.region` _(optional)_ | Will default to `cn` which supports the latest range of sensor types, but can be set to other regions |
+| `smart.miio.username` | `Mi Home` Username |
+| `smart.miio.password` | `Mi Home` Password |
+| `smart.miio.region` _(optional)_ | Will default to `cn` which supports the latest range of sensor types, but can be set to other regions |
 | `smart.interval` _(optional)_ | Polling time for sensors (Default: 60 sec.) |
 | `smart.reference` | The room name of a sensor which is used as the temperature reference when making thermostat adjustments. This should be the sensor nearest the thermostat (the thermostat API doesn't provide its own temperature reading) |
 | `smart.feeslike` _(optional)_ | If `true` the temperatures will be adjusted based on the humidity, to better refect the temperatures rooms feel |
