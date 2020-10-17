@@ -51,13 +51,16 @@
 | `smart.reference` | The room name of a sensor which is used as the temperature reference when making thermostat adjustments. This should be the sensor nearest the thermostat (the thermostat API doesn't provide its own temperature reading) |
 | `smart.feeslike` _(optional)_ | If `true` the temperatures will be adjusted based on the humidity, to better refect the temperatures rooms feel |
 | `smart.hold` _(optional)_ | Number of minutes (Default: 60 mins.) to hold the temperature without adjustment if changed externally (e.g. on the wall thermostat)
+| `smart.unit` _(optioanl)_ | The units (C or F) for the low and high temperatures in the schedule (Default: C) |
 | `smart.schedule` | Zero or more schedule entries describing how and when a room sensor is important |
 | `smart.schedule.day` | A day `(Sun,Mon,Tue,Wed,Thu,Fri,Sat)` or a series of days `(Mon-Thu)` or `Any` specifying which day this schedule applies |
 | `smart.schedule.from` | A time `(e.g 1:00pm,12:13am,11:59pm)` when this schedule starts |
 | `smart.schedule.to` | A time when this schedule ends |
-| `smart.schedule.occupied` | A weight from `0-100` specifying how important this schedule is, higher being more important. This weight is for when the room is occupied (or always if the room has no motion sensor) |
-| `smart.schedule.empty` | A weight for when the room has been empty for 30 minutes or more |
-| `smart.schedule.room` | The room name which should match the beginning name of the sensor `(e.g. Dining Room` has sensors `Dining Room Temperature` and `Dining Room Movement)` |
+| `smart.schedule.low` | The lowest the temperature should be allowed to go |
+| `smart.schedule.high` | The highest the temperature should be allowed to go |
+| `smart.schedule.rooms` | An object of rooms, where the key is the room name. The room name should match the beginning name of the sensor `(e.g. Dining Room` has sensors `Dining Room Temperature` and `Dining Room Movement)` |
+| `smart.schedule.rooms.ROOM.occupied` | A weight from `0-100` specifying how important this schedule is, higher being more important. This weight is for when the room is occupied (or always if the room has no motion sensor) |
+| `smart.schedule.rooms.ROOM.empty` _(optional)_ | A weight for when the room has been empty for 30 minutes or more |
 
 ## Smart operation
 Smart operation uses Xiomi temperature, humidity and movement sensors to adjust the thermostat target temperature depending on where you are in your house (in a similar way to the Ecobee thermostat). Sensors must be registered using the `Mi Home` application.

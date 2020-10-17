@@ -1,23 +1,36 @@
 const Feels = require('feels');
-const Log = require('debug')('smart');
+
+const MODE_OFF = 0;
+const MODE_COOL = 2;
+const MODE_HEAT = 1;
+
 
 function Smart() {
   this.devices = {};
   this.sensors = null;
   this.poller = null;
   this.referenceDevice = null;
-  this.currentTempC = null;
-  this.currentTempDiffC = 0;
   this.feelsLike = false;
   this.holdTime = 0;
+  this.unit = 'c';
+  this.currentProgram = {
+    targetMode: MODE_OFF,
+    targetTemperature: null,
+    currentReferenceTemperature: null,
+    currentTemperature: null,
+    pause: Number.MAX_SAFE_INTEGER
+  };
 }
 
-Smart.prototype.start = function(config) {
+Smart.prototype.start = function(config, log) {
+  this.log = log;
   this.schedule = this._buildSchedule(config.schedule);
   this.referenceDevice = config.reference;
   this.feelsLike = config.feelslike || false;
   this.holdTime = (config.hold || 60) * 60 * 1000;
+  this.unit = (config.unit || 'c').toLowerCase();
   this.sensors = config.sensors;
+  this.currentProgram.pause = 0;
   this.poller = setInterval(() => {
     this._run()
   }, (config.interval || 60) * 1000);
@@ -32,78 +45,104 @@ Smart.prototype.stop = function() {
 }
 
 Smart.prototype._run = async function() {
-  Log('_run:');
+  this.log('_run:');
   try {
     await this.sensors.updateDevices(this.devices);
   }
   catch (e) {
-    Log('_run: _updateDevice error:', e);
+    this.log('_run: _updateDevice error:', e);
     return;
   }
 
   // Current reference temperature
-  let referenceTempC = null;
+  this.currentProgram.currentReferenceTemperature = null;
   const refdevice = this.devices[this.referenceDevice];
   if (refdevice) {
-    referenceTempC = refdevice.weather.temperature;
-    // Dont adjust the reference temperature for feelsLike as this is what we're assuming the
-    // thermostat is also reading, and we need to know the difference between that and our
-    // calculated temperature.
+    this.currentProgram.currentReferenceTemperature = refdevice.weather.temperature;
   }
+
+  let targetLowTempC = null;
+  let targetHighTempC = null;
+  this.currentProgram.currentTemperature = this.currentProgram.currentReferenceTemperature;
 
   // Generate a current temperature based on the temperature of the sensors.
   // These values are weighted, based on a schedule and/or motion associated
   // with the sensors.
-  const program = this._getProgram();
-  let totalWeight = 0;
-  let totalWeightedTemperature = 0;
-  for (let name in this.devices) {
-    const device = this.devices[name];
-    const prog = program[name];
-    let weight = prog ? prog.occupied : 0;
-    if (prog && device.motion && !device.motion.motion1800) {
-      weight = prog.empty;
+  const program = this._getSchedule();
+  if (program && refdevice) {
+
+    targetLowTempC = program.low;
+    targetHighTempC = program.high;
+
+    let totalWeight = 0;
+    let totalWeightedTemperature = 0;
+
+    for (let name in program.rooms) {
+      const room = program.rooms[name];
+      const device = this.devices[name];
+      let weight = room.occupied || 0;
+      if (device.motion && !device.motion.motion1800 && 'empty' in room) {
+        weight = room.empty;
+      }
+      totalWeight += weight;
+      let tempC = device.weather.temperature;
+      if (this.feelsLike) {
+        tempC = Feels.humidex(tempC, device.weather.humidity);
+      }
+      totalWeightedTemperature += tempC * weight;
+      this.log('_run:', name, tempC, 'C', weight);
     }
-    totalWeight += weight;
-    let tempC = device.weather.temperature;
-    if (this.feelsLike) {
-      tempC = Feels.humidex(tempC, device.weather.humidity);
+
+    if (totalWeight !== 0) {
+      this.currentProgram.currentTemperature = totalWeightedTemperature / totalWeight;
+      const currentTempDiffC = this.currentProgram.currentTemperature - this.currentProgram.currentReferenceTemperature;
+      targetLowTempC -= currentTempDiffC;
+      targetHighTempC -= currentTempDiffC;
     }
-    totalWeightedTemperature += tempC * weight;
-    Log('_run:', name, tempC, 'C', weight);
   }
 
-  if (totalWeight !== 0 && referenceTempC !== null) {
-    this.currentTempC = totalWeightedTemperature / totalWeight;
-    this.currentTempDiffC = this.currentTempC - referenceTempC;
+  if (targetLowTempC === null || targetHighTempC === null) {
+    // No active program, so turn it off
+    this.currentProgram.targetMode = MODE_OFF;
+    this.currentProgram.targetTemperature = null;
+  }
+  else if (this.currentProgram.currentTemperature < targetLowTempC) {
+    // Too cold - heat
+    this.currentProgram.targetMode = MODE_HEAT;
+    this.currentProgram.targetTemperature = targetLowTempC;
+  }
+  else if (this.currentProgram.currentTemperature > targetHighTempC) {
+    // Too hot - cool
+    this.currentProgram.targetMode = MODE_COOL;
+    this.currentProgram.targetTemperature = targetHighTempC;
   }
   else {
-    this.currentTempC = null;
-    this.currentTempDiffC = 0;
+    // Just right - leave the current mode and target 'as is'.
   }
-  Log('_run: referenceTemp:', referenceTempC.toFixed(1), 'C', (32 + referenceTempC / 5 * 9).toFixed(1), 'F');
-  Log('_run: currentTemp:', this.currentTempC.toFixed(1), 'C', (32 + this.currentTempC / 5 * 9).toFixed(1), 'F');
-  Log('_run: currentTempDiff:', this.currentTempDiffC.toFixed(1), 'C', (this.currentTempDiffC / 5 * 9).toFixed(1), 'F');
+
+  this.log('_run: referenceTemp:', this.currentProgram.currentReferenceTemperature.toFixed(1), 'C', (32 + this.currentProgram.currentReferenceTemperature / 5 * 9).toFixed(1), 'F');
+  this.log('_run: currentTemp:', this.currentProgram.currentTemperature.toFixed(1), 'C', (32 + this.currentProgram.currentTemperature / 5 * 9).toFixed(1), 'F');
+  this.log('_run: currentTempDiff:', (this.currentProgram.currentTemperature - this.currentProgram.currentReferenceTemperature).toFixed(1), 'C', ((this.currentProgram.currentTemperature - this.currentProgram.currentReferenceTemperature) / 5 * 9).toFixed(1), 'F');
 }
 
-Smart.prototype._getProgram = function() {
-  Log('_getProgram:');
+Smart.prototype._getSchedule = function() {
+  this.log('_getSchedule:');
   const now = new Date();
   const dayOfWeek = now.getDay();
   const dayMinutes = now.getHours() * 60 + now.getMinutes();
-  const program = {};
   for (let i = 0; i < this.schedule.length; i++) {
     const sched = this.schedule[i];
     if (dayOfWeek === sched.dayOfWeek && dayMinutes >= sched.fromTime && dayMinutes <= sched.toTime) {
-      program[sched.device] = sched;
+      this.log('_getSchedule: program:', sched);
+      return sched;
     }
   }
-  Log('_getProgram: program:', program);
-  return program;
+  this.log('_getSchedule: program: none');
+  return null;
 }
 
 Smart.prototype._buildSchedule = function(schedule) {
-  Log('_buildSchedule:', schedule);
+  this.log('_buildSchedule:', schedule);
 
   // Format: eg. 12:00am, 12:00pm, 1:10am, 2:05p
   function parseTime(time) {
@@ -140,30 +179,36 @@ Smart.prototype._buildSchedule = function(schedule) {
       d.push(i % 7);
     }
     return d;
-
   }
+
+  const toC = (v) => {
+    return Feels.tempConvert(parseFloat(v), this.unit, 'c');
+  }
+
   const computed = [];
   schedule.forEach(sched => {
     const from = parseTime(sched.from);
     const to = parseTime(sched.to);
     const days = parseDayOfWeek(sched.day);
+    const low = toC(sched.low);
+    const high = toC(sched.high);
     if (from !== undefined && to !== undefined && days !== undefined) {
       days.forEach(day => {
         computed.push({
           dayOfWeek: day,
           fromTime: from,
           toTime: to,
-          device: sched.room,
-          occupied: sched.occupied,
-          empty: sched.empty !== undefined ? sched.empty : sched.occupied
+          low: low,
+          high: high,
+          rooms: sched.rooms
         });
       });
     }
     else {
-      Log('_buildSchedule: bad schedule:', sched);
+      this.log('_buildSchedule: bad schedule:', sched);
     }
   });
-  Log('_buildSchedule: result:', computed);
+  this.log('_buildSchedule: result:', computed);
   return computed;
 }
 

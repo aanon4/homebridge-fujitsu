@@ -1,5 +1,4 @@
 const Mihome = require('node-mihome');
-const Log = require('debug')('miio');
 
 function Miio() {
   this.username = null;
@@ -7,8 +6,9 @@ function Miio() {
   this.region = null;
 }
 
-Miio.prototype.login = async function(config) {
-  Log('_login:');
+Miio.prototype.login = async function(config, log) {
+  this.log = log;
+  this.log('_login:');
   this.username = config.username;
   this.password = config.password;
   this.region = config.region || 'cn';
@@ -16,7 +16,7 @@ Miio.prototype.login = async function(config) {
 }
 
 Miio.prototype.updateDevices = async function(devices) {
-  Log('updateDevices:');
+  this.log('updateDevices:');
   function extractName(name) {
     const post = [ ' Temp', ' Move', ' Motion' ];
     for (let i = 0; i < post.length; i++) {
@@ -29,7 +29,7 @@ Miio.prototype.updateDevices = async function(devices) {
   }
   const miidevices = await Mihome.miCloudProtocol.getDevices(null, { country: this.region });
   miidevices.forEach(dev => {
-    Log('updateDevices: device', dev);
+    this.log('updateDevices: device', dev);
     const name = extractName(dev.name);
     switch (dev.model) {
       case 'lumi.weather.v1':
@@ -57,7 +57,7 @@ Miio.prototype.updateDevices = async function(devices) {
       delete devices[name];
     }
   }
-  Log('updateDevices:', devices);
+  this.log('updateDevices:', devices);
 }
 
 module.exports = new Miio();
