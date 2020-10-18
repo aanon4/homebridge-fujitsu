@@ -143,9 +143,13 @@ Smart.prototype._getSchedule = function() {
   for (let i = 0; i < this.schedule.length; i++) {
     const sched = this.schedule[i];
     if (dayOfWeek === sched.dayOfWeek && dayMinutes >= sched.fromTime && dayMinutes <= sched.toTime && sched.trigger) {
-      const device = this.devices[sched.trigger.room];
-      if (device && device.motion && device.motion.motion1800) {
-        sched._triggered = true;
+      if (!sched._triggered) {
+        sched.trigger.forEach(trigger => {
+          const device = this.devices[trigger.room];
+          if (device && device.motion && device.motion.motion1800) {
+            sched._triggered = true;
+          }
+        });
       }
       if (sched._triggered) {
         this.log('_getSchedule: tiggered program:', sched);
