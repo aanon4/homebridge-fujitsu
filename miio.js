@@ -34,6 +34,7 @@ Miio.prototype.updateDevices = async function(devices) {
     switch (dev.model) {
       case 'lumi.weather.v1':
         (devices[name] || (devices[name] = {})).weather = {
+          online: dev.isOnline,
           temperature: dev.prop.temperature / 100,
           humidity: dev.prop.humidity / 100,
           pressure: dev.prop.pressure / 100
@@ -41,6 +42,7 @@ Miio.prototype.updateDevices = async function(devices) {
         break;
       case 'lumi.sensor_motion.aq2':
         (devices[name] || (devices[name] = {})).motion = {
+          online: dev.isOnline,
           motion60: dev.event['prop.no_motion_60'] != '1',
           motion120: dev.event['prop.no_motion_120'] != '1',
           motion300: dev.event['prop.no_motion_300'] != '1',

@@ -57,7 +57,7 @@ Smart.prototype._run = async function() {
   // Current reference temperature
   this.currentProgram.currentReferenceTemperature = null;
   const refdevice = this.devices[this.referenceDevice];
-  if (refdevice) {
+  if (refdevice && refdevice.weather && refdevice.weather.online) {
     this.currentProgram.currentReferenceTemperature = refdevice.weather.temperature;
   }
 
@@ -80,17 +80,19 @@ Smart.prototype._run = async function() {
     for (let name in program.rooms) {
       const room = program.rooms[name];
       const device = this.devices[name];
-      let weight = room.occupied || 0;
-      if (device.motion && !device.motion.motion1800 && 'empty' in room) {
-        weight = room.empty;
+      if (device.weather && device.weather.online) {
+        let weight = room.occupied || 0;
+        if (device.motion && device.motion.online && !device.motion.motion1800 && 'empty' in room) {
+          weight = room.empty;
+        }
+        totalWeight += weight;
+        let tempC = device.weather.temperature;
+        if (this.feelsLike) {
+          tempC = Feels.humidex(tempC, device.weather.humidity);
+        }
+        totalWeightedTemperature += tempC * weight;
+        this.log('_run:', name, tempC, 'C', weight);
       }
-      totalWeight += weight;
-      let tempC = device.weather.temperature;
-      if (this.feelsLike) {
-        tempC = Feels.humidex(tempC, device.weather.humidity);
-      }
-      totalWeightedTemperature += tempC * weight;
-      this.log('_run:', name, tempC, 'C', weight);
     }
 
     if (totalWeight !== 0) {
@@ -146,7 +148,7 @@ Smart.prototype._getSchedule = function() {
       if (!sched._triggered) {
         sched.trigger.forEach(trigger => {
           const device = this.devices[trigger.room];
-          if (device && device.motion && device.motion.motion1800) {
+          if (device && device.motion && device.motion.online && device.motion.motion1800) {
             sched._triggered = true;
           }
         });
