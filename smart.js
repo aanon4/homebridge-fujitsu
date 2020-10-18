@@ -130,13 +130,39 @@ Smart.prototype._getSchedule = function() {
   const now = new Date();
   const dayOfWeek = now.getDay();
   const dayMinutes = now.getHours() * 60 + now.getMinutes();
+
+  // Remove any triggers which are no longer active
   for (let i = 0; i < this.schedule.length; i++) {
     const sched = this.schedule[i];
-    if (dayOfWeek === sched.dayOfWeek && dayMinutes >= sched.fromTime && dayMinutes <= sched.toTime) {
+    if (!(dayOfWeek === sched.dayOfWeek && dayMinutes >= sched.fromTime && dayMinutes <= sched.toTime) && sched._triggered) {
+      delete sched._triggered;
+    }
+  }
+
+  // Look for a schedule entry which has been triggered
+  for (let i = 0; i < this.schedule.length; i++) {
+    const sched = this.schedule[i];
+    if (dayOfWeek === sched.dayOfWeek && dayMinutes >= sched.fromTime && dayMinutes <= sched.toTime && sched.trigger) {
+      const device = this.devices[sched.trigger.room];
+      if (device && device.motion && device.motion.motion1800) {
+        sched._triggered = true;
+      }
+      if (sched._triggered) {
+        this.log('_getSchedule: tiggered program:', sched);
+        return sched;
+      }
+    }
+  }
+
+  // Look for a normal schedule entry
+  for (let i = 0; i < this.schedule.length; i++) {
+    const sched = this.schedule[i];
+    if (dayOfWeek === sched.dayOfWeek && dayMinutes >= sched.fromTime && dayMinutes <= sched.toTime && !sched.trigger) {
       this.log('_getSchedule: program:', sched);
       return sched;
     }
   }
+
   this.log('_getSchedule: program: none');
   return null;
 }
