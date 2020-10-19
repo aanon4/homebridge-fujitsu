@@ -85,7 +85,7 @@ function Thermostat(log, config) {
     this.smart = require('./smart');
     // Enable MIIO sensors (if configured)
     if (config.smart && config.smart.miio) {
-        const miio = require('./miio');
+        const miio = require('./sensors/miio');
         miio.login(config.smart.miio, this.log).then(() => {
             config.smart.sensors = miio;
             this.smart.start(config.smart, this.log);
