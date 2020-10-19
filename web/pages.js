@@ -2,9 +2,10 @@ const FS = require('fs');
 const Main = require('./main');
 
 const Pages = {
-  '/':                  { fn: Main.html },
+  '/':                  { fn: Main.main },
   '/ws':                { fn: Main.ws },
   '/css/main.css':      { path: `${__dirname}/main.css`, type: 'text/css' },
+  '/css/bootstrap.css': { path: `${__dirname}/../node_modules/bootstrap/dist/css/bootstrap.css`, type: 'text/css' },
   '/js/script.js':      { path: `${__dirname}/script.js`, type: 'text/javascript' },
   '/js/jquery.js':      { path: `${__dirname}/../node_modules/jquery/dist/jquery.js`, type: 'text/javascript' },
   '/js/bootstrap.js':   { path: `${__dirname}/../node_modules/bootstrap/dist/js/bootstrap.bundle.js`, type: 'text/javascript' }
