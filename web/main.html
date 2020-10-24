@@ -3,13 +3,40 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=1080">
-    <link rel="stylesheet" href="/css/bootstrap.css" type="text/css">
+    <link rel="stylesheet" href="/css/tippy.css" type="text/css">
+    <link rel="stylesheet" href="/css/tippy/theme.css" type="text/css">
     <link rel="stylesheet" href="/css/main.css" type="text/css">
-    <script src="/js/jquery.js"></script>
-    <script src="/js/bootstrap.js"></script>
+    <script src="/js/popper.js"></script>
+    <script src="/js/tippy.js"></script>
     <script src="/js/script.js"></script>
+    <script src="/js/time-input-polyfill.js"></script>
     <title>Smart Thermostat</title>
   </head>
   <body>
+    <div class="schedule">
+      <div class="schedule-sliders">
+        {{#each sliders}}
+        {{> slide rooms=../rooms}}
+        {{/each}}
+      </div>
+      <div class="hours">
+        <div class="padding"></div>
+        <div class="hour-container">
+          <div class="shed"></div>
+          <div class="hour">12a</div>
+          <div class="hour">2a</div>
+          <div class="hour">4a</div>
+          <div class="hour">6a</div>
+          <div class="hour">8a</div>
+          <div class="hour">10a</div>
+          <div class="hour">Noon</div>
+          <div class="hour">2p</div>
+          <div class="hour">4p</div>
+          <div class="hour">6p</div>
+          <div class="hour">8p</div>
+          <div class="hour">10p</div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

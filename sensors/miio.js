@@ -33,7 +33,7 @@ Miio.prototype.updateDevices = async function(devices) {
     const name = extractName(dev.name);
     switch (dev.model) {
       case 'lumi.weather.v1':
-        (devices[name] || (devices[name] = {})).weather = {
+        (devices[name] || (devices[name] = {})).environ = {
           online: dev.isOnline,
           temperature: dev.prop.temperature / 100,
           humidity: dev.prop.humidity / 100,
@@ -53,12 +53,7 @@ Miio.prototype.updateDevices = async function(devices) {
         break;
     }
   });
-  // Remove any devices which don't have weather associated with them
-  for (let name in devices) {
-    if (!devices[name].weather) {
-      delete devices[name];
-    }
-  }
+
   this.log('updateDevices:', devices);
 }
 

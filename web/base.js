@@ -4,17 +4,25 @@ const Log = require('debug')('web');
 class Base {
 
   constructor(name) {
-    Template.load();
-    this.template = Template[name];
-    this.state = {};
+    this._name = name;
     this._websocket = null;
     this._pending = {};
+    this.state = {};
+
+    if (!process.env.DEBUG) {
+      Template.load();
+      this.template = Template[this._name];
+    }
 
     this.main = this.main.bind(this);
     this.ws = this.ws.bind(this);
   }
 
   main(ctx) {
+    if (process.env.DEBUG) {
+      Template.load();
+      this.template = Template[this._name];
+    }
     ctx.body = this.template(this.state);
     ctx.type = 'text/html';
   }
@@ -42,7 +50,7 @@ class Base {
         let fn = this[msg.cmd];
         if (fn) {
           try {
-            Log(msg);
+            Log(JSON.stringify(msg, null, 2));
             await fn.call(this, msg.value);
           }
           catch (e) {

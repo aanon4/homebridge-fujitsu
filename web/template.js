@@ -84,6 +84,9 @@ Handlebars.registerHelper({
   },
   date: function(d) {
     return new Date(d).toDateString()
+  },
+  keys: function(v) {
+    return Object.keys(v);
   }
 });
 

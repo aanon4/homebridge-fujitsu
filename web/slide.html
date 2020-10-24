@@ -1,0 +1,32 @@
+<div class="slide-container">
+  <div class="title">{{title}}</div>
+  <div class="shed"></div>
+  <div class="slide">
+    {{#each sliders}}
+      <div id="slider-{{../title}}-{{@index}}" class="slider" style="display: none;left: 0px" draggable="true">
+        <div class="slider-inner">
+          <div class="temp top">{{#if time}}{{high}}{{else}}-{{/if}}</div>
+          <div class="temp bottom">{{#if time}}{{low}}{{else}}-{{/if}}</div>
+        </div>
+      </div>
+      <script>
+        slider({
+          id: "slider-{{../title}}-{{@index}}",
+          time: "{{time}}",
+          high: "{{high}}",
+          low: "{{low}}",
+          trigger: "{{trigger}}",
+          rooms: {
+            {{#each (keys rooms)}}
+            "{{this}}": {
+              {{#if (lookup (lookup ../rooms this) 'always')}}always: true,{{/if}}
+              {{#if (lookup (lookup ../rooms this) 'occupied')}}occupied: true,{{/if}}
+            },
+            {{/each}}
+          },
+          content: `{{> slider-options availablerooms=../rooms }}`
+        });
+      </script>
+    {{/each}}
+  </div>
+</div>

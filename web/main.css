@@ -1,0 +1,151 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  font-family: -apple-system, "BlinkMacSystemFont", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "Noto Sans", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  background-color: #303030;
+  padding: 50px;
+}
+.schedule {
+  color: white;
+  font-size: 14px;
+}
+.schedule-sliders {
+  flex-grow: 1;
+  border: solid 1px grey;
+  border-radius: 15px;
+  margin-right: -28px;
+  padding-right: 28px;
+}
+.slide-container {
+  display: flex;
+  border-top: solid 1px grey;
+  margin-right: -28px;
+  padding-right: 28px;
+}
+.slide-container:first-child {
+  border-top: 0px;
+}
+.slide-container .title {
+  width: 95px;
+  line-height: 57px;
+  padding-left: 7px;
+  border-right: solid 1px grey;
+}
+.slide-container .shed {
+  width: 34px;
+  margin-right: 2px;
+  border-right: solid 1px grey;
+}
+.slide {
+  position: relative;
+  flex-grow: 1;
+  height: 50px;
+  margin: 4px 0;
+}
+
+.slider {
+  position: absolute;
+  width: 25px;
+  height: 100%;
+  top: 0;
+  color: rgb(240, 240, 240);
+  border-radius: 25px;
+  border: solid 1px rgb(128, 128, 128);
+}
+.slider-inner {
+  height: 100%;
+}
+.slider .temp {
+  height: 50%;
+  font-size: 14px;
+  text-align: center;
+}
+.slider .temp.top {
+  margin-top: 4px;
+  color: rgb(192, 61, 37);
+}
+.slider .temp.bottom {
+  margin-top: -2px;
+  color: rgb(52, 119, 148);
+}
+
+.slider-options {
+  width: 200px;
+  font-weight: normal;
+  margin: 2px 2px 12px 2px;
+}
+.slider-options .room div {
+  display: inline-block;
+  width: 107px;
+}
+.slider-options label {
+  display: inline-block;
+  width: 55px;
+}
+.slider-options input {
+  width: 125px;
+  background-color: #505355;
+  color: white;
+  border-width: 0;
+  font: inherit;
+  outline: none;
+}
+.slider-options input[type=number] {
+  width: auto;
+}
+.slider-options select {
+  background-color: transparent;
+  border: 1px solid grey;
+  border-radius: 5px;
+  color: white;
+  font-size: 12px;
+}
+.slider-options select option {
+  background-color: grey;
+  color: white;
+}
+.slider-options .trigger {
+  text-align: right;
+  padding-right: 8px;
+}
+
+.box {
+  padding: 5px;
+  border: 1px solid #c0c0c0;
+  border-radius: 5px;
+  margin-top: -8px;
+  padding: 8px 0 8px 7px;
+}
+.box-label {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 2px;
+  font-size: 12px;
+  color: #c0c0c0;
+  background-color: #505355;
+}
+
+.schedule .hours {
+  display: flex;
+  padding-top: 5px;
+  font-size: 10px;
+}
+.schedule .hours .padding {
+  width: 97px;
+}
+.schedule .hours .hour-container {
+  display: flex;
+  flex-grow: 1;
+}
+.schedule .hours .hour {
+  display: inline-block;
+  width: 0px;
+  flex-grow: 1;
+  padding-left: 6px;
+}
+.schedule .hours .shed {
+  display: inline-block;
+  width: 36px;
+  flex-grow: 0;
+}
