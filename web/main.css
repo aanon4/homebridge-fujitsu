@@ -6,20 +6,87 @@ body {
   background-color: #303030;
   padding: 50px;
 }
+
+.status {
+  display: flex;
+  height: 200px;
+  margin-bottom: 16px;
+}
+
+.thermostat .small-temp {
+  position: relative;
+  padding-left: 170px;
+  text-align: center;
+}
+.thermostat .feelslike {
+  position: absolute;
+  font-size: 12px;
+  margin: 35px 0 0 -45px;
+}
+.thermostat .high,
+.thermostat .low {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  line-height: 38px;
+  border-radius: 20px;
+  font-size: 20px;
+  border: 1px solid white;
+  text-align: center;
+}
+.thermostat .high {
+  top: 40px;
+  color: rgb(192, 61, 37);
+  border-color: rgb(192, 61, 37);
+}
+.thermostat .low {
+  bottom: 40px;
+  color: rgb(52, 119, 148);
+  border-color: rgb(52, 119, 148);
+}
+.thermostat .current {
+  position: relative;
+  top: -6px;
+  font-size: 100px;
+  text-align: center;
+  color: #c0c0c0;
+}
+.thermostat .heating {
+  position: relative;
+  bottom: 50px;
+  font-size: 18px;
+  text-align: center;
+}
+
+.status .thermostat {
+  width: 300px;
+  margin-right: 8px;
+  color: white;
+  border: solid 1px #c0c0c0;
+  border-radius: 100px;
+}
+.status .weather {
+  margin-left: 8px;
+  flex-grow: 1;
+}
+
+
 .schedule {
   color: white;
   font-size: 14px;
+  margin-right: 28px;
 }
 .schedule-sliders {
   flex-grow: 1;
-  border: solid 1px grey;
+  border: solid 1px #c0c0c0;
   border-radius: 15px;
   margin-right: -28px;
   padding-right: 28px;
 }
 .slide-container {
   display: flex;
-  border-top: solid 1px grey;
+  border-top: solid 1px #c0c0c0;
   margin-right: -28px;
   padding-right: 28px;
 }
@@ -28,7 +95,7 @@ body {
 }
 .slide-container .title {
   width: 95px;
-  line-height: 57px;
+  line-height: 53px;
   padding-left: 7px;
   border-right: solid 1px grey;
 }
@@ -40,7 +107,7 @@ body {
 .slide {
   position: relative;
   flex-grow: 1;
-  height: 50px;
+  height: 45px;
   margin: 4px 0;
 }
 

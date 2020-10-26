@@ -31,12 +31,15 @@ class Base {
 
     if (this._websocket) {
       this._websocket.close();
+      this.unwatch();
     }
     this._websocket = ctx.websocket;
+    this.watch();
 
     ctx.websocket.on('close', () => {
       if (this._websocket === ctx.websocket) {
         this._websocket = null;
+        this.unwatch();
       }
     });
 
@@ -93,6 +96,12 @@ class Base {
         }
       }, 10);
     }
+  }
+
+  watch() {
+  }
+
+  unwatch() {
   }
 
 }

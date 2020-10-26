@@ -1,0 +1,11 @@
+{{#with thermostat}}
+<div class="small-temp">
+  {{#if ../feelsLike}}<div class="feelslike">Feels Like</div>{{/if}}
+  <div class="high">{{#if (eq mode 'Off')}}-{{else}}{{high}}{{/if}}</div>
+</div>
+<div class="current">{{current}}</div>
+<div class="small-temp">
+  <div class="low">{{#if (eq mode 'Off')}}-{{else}}{{low}}{{/if}}</div>
+</div>
+<div class="heating">{{mode}}</div>
+{{/with}}

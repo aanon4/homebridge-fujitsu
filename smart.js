@@ -1,12 +1,14 @@
+const EventEmitter = require('events');
 const Feels = require('feels');
 
 const MODE_OFF = 0;
 const MODE_COOL = 2;
 const MODE_HEAT = 1;
 
-class Smart {
+class Smart extends EventEmitter {
 
   constructor() {
+    super();
     this.devices = {};
     this.sensors = null;
     this.poller = null;
@@ -19,6 +21,8 @@ class Smart {
       targetTemperature: null,
       currentReferenceTemperature: null,
       currentTemperature: null,
+      targetHighTempC: null,
+      targetLowTempC: null,
       pause: Number.MAX_SAFE_INTEGER
     };
   }
@@ -34,29 +38,34 @@ class Smart {
 
     this.setSchedule(this.buildSchedule(config.schedule));
 
-    this.poller = setInterval(() => {
-      this._run()
-    }, (config.interval || 60) * 1000);
-    this._run();
+    const poll = () => {
+      this._updateSensors().then(() => {
+        this._updateProgram();
+        this.poller = setTimeout(poll, Math.max(0, 60000 - Date.now() % 60000));
+      });
+    }
+    poll();
   }
 
   stop() {
     if (this.poller) {
-      clearInterval(this.poller);
+      clearTimeout(this.poller);
       this.poller = null;
     }
   }
 
-  async _run() {
-    this.log('_run:');
+  async _updateSensors() {
+    this.log('_updateSensors:');
     try {
       await this.sensors.updateDevices(this.devices);
+      this.emit('smart.devices.update');
     }
     catch (e) {
-      this.log('_run: _updateDevice error:', e);
-      return;
+      this.log('_updateSensors: error:', e);
     }
+  }
 
+  _updateProgram() {
     // Current reference temperature
     this.currentProgram.currentReferenceTemperature = null;
     const refdevice = this.devices[this.referenceDevice];
@@ -94,7 +103,7 @@ class Smart {
             tempC = Feels.humidex(tempC, device.environ.humidity);
           }
           totalWeightedTemperature += tempC * weight;
-          this.log('_run:', name, tempC, 'C', weight);
+          this.log('_updateProgram:', name, tempC, 'C', weight);
         }
       }
 
@@ -105,6 +114,9 @@ class Smart {
         targetHighTempC -= currentTempDiffC;
       }
     }
+
+    this.currentProgram.targetLowTempC = targetLowTempC;
+    this.currentProgram.targetHighTempC = targetHighTempC;
 
     if (targetLowTempC === null || targetHighTempC === null) {
       // No active program, so turn it off
@@ -125,9 +137,12 @@ class Smart {
       // Just right - leave the current mode and target 'as is'.
     }
 
-    this.log('_run: referenceTemp:', this.currentProgram.currentReferenceTemperature.toFixed(1), 'C', (32 + this.currentProgram.currentReferenceTemperature / 5 * 9).toFixed(1), 'F');
-    this.log('_run: currentTemp:', this.currentProgram.currentTemperature.toFixed(1), 'C', (32 + this.currentProgram.currentTemperature / 5 * 9).toFixed(1), 'F');
-    this.log('_run: currentTempDiff:', (this.currentProgram.currentTemperature - this.currentProgram.currentReferenceTemperature).toFixed(1), 'C', ((this.currentProgram.currentTemperature - this.currentProgram.currentReferenceTemperature) / 5 * 9).toFixed(1), 'F');
+    this.emit('smart.program.update');
+
+    this.log('_updateProgram: currentProgram:', JSON.stringify(this.currentProgram, null, 2));
+    //this.log('_updateProgram: referenceTemp:', this.currentProgram.currentReferenceTemperature.toFixed(1), 'C', (32 + this.currentProgram.currentReferenceTemperature / 5 * 9).toFixed(1), 'F');
+    //this.log('_updateProgram: currentTemp:', this.currentProgram.currentTemperature.toFixed(1), 'C', (32 + this.currentProgram.currentTemperature / 5 * 9).toFixed(1), 'F');
+    //this.log('_updateProgram: currentTempDiff:', (this.currentProgram.currentTemperature - this.currentProgram.currentReferenceTemperature).toFixed(1), 'C', ((this.currentProgram.currentTemperature - this.currentProgram.currentReferenceTemperature) / 5 * 9).toFixed(1), 'F');
   }
 
   _getSchedule() {
@@ -144,7 +159,7 @@ class Smart {
     let end = this.schedule.length;
     while (start < end) {
       const i = Math.floor((start + end) / 2);
-      if (this.schedule[i].weektime < weektime) {
+      if (this.schedule[i].weektime <= weektime) {
         start = i + 1;
       }
       else {
@@ -154,6 +169,7 @@ class Smart {
 
     // Walk backwards from this point to find the exact match based on looping around the schedule list and handle triggers
     let pos = start - 1;
+    console.log('pos schedule', this.schedule[pos]);
     for (;;) {
       const sched = this.schedule[pos];
       if (weektime >= sched.weektime) {
@@ -191,6 +207,8 @@ class Smart {
     const copy = [].concat(schedule);
     copy.sort((a, b) => a.weektime - b.weektime + (a.trigger ? 0.5 : 0) - (b.trigger ? 0.5 : 0));
     this.schedule = copy;
+    this.emit('smart.schedule.update');
+    this._updateProgram();
   }
 
   buildSchedule(schedule) {

@@ -13,9 +13,16 @@
     <title>Smart Thermostat</title>
   </head>
   <body>
+    <div class="status">
+      <div id="thermostat" class="thermostat">
+        {{> thermostat}}
+      </div>
+      <div class="weather">
+      </div>
+    </div>
     <div class="schedule">
       <div class="schedule-sliders">
-        {{#each sliders}}
+        {{#each schedule}}
         {{> slide rooms=../rooms}}
         {{/each}}
       </div>
