@@ -114,7 +114,7 @@ class Main extends Base {
   }
 
   saveState() {
-    const json = {
+    const json = JSON.stringify({
       schedule: this.state.schedule.map(sched => {
         return {
           title: sched.title,
@@ -129,11 +129,21 @@ class Main extends Base {
           })
         };
       })
-    };
-    FS.writeFile(this.scheduleFile, JSON.stringify(json), { encoding: 'utf8' }, e => {
-      if (e) {
-        console.error('saveState:', e);
+    });
+    FS.readFile(this.scheduleFile, { encoding: 'utf8' }, (e, info) => {
+      if (!e) {
+        if (info == json) {
+          return;
+        }
+        FS.writeFile(`${this.scheduleFile}.bak`, info, { encoding: 'utf8' }, e => {
+          console.error('saveState: copy:', e);
+        });
       }
+      FS.writeFile(this.scheduleFile, json, { encoding: 'utf8' }, e => {
+        if (e) {
+          console.error('saveState:', e);
+        }
+      });
     });
   }
 
