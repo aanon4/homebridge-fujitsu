@@ -45,6 +45,11 @@ class Smart extends EventEmitter {
       });
     }
     poll();
+
+    if (config.weather) {
+      this.weather = require('./weather');
+      this.weather.start(config.weather);
+    }
   }
 
   stop() {

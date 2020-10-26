@@ -67,10 +67,12 @@ body {
   border-radius: 100px;
 }
 .status .weather {
+  display: flex;
   margin-left: 8px;
   flex-grow: 1;
+  justify-content: center;
+  align-items: center;
 }
-
 
 .schedule {
   color: white;
@@ -215,4 +217,31 @@ body {
   display: inline-block;
   width: 36px;
   flex-grow: 0;
+}
+
+.weather .icon {
+  display: inline-block;
+  width: 200px;
+  height: 200px;
+}
+.weather .description {
+  display: inline-block;
+  color: white;
+  text-align: center;
+}
+.weather .description .temperature {
+  font-size: 44px;
+}
+.weather .description .humidity {
+
+}
+.weather .description .text {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+.weather .description .text:first-letter {
+  text-transform: capitalize;
+}
+.weather .description .city {
+
 }

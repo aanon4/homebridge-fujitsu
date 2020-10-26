@@ -65,16 +65,25 @@ class Main extends Base {
   watch() {
     this.smart.on('smart.devices.update', this._programUpdate);
     this.smart.on('smart.program.update', this._programUpdate);
+    if (this.smart.weather) {
+      this.smart.weather.on('weather.update', this._programUpdate);
+    }
   }
 
   unwatch() {
     this.smart.off('smart.devices.update', this._programUpdate);
     this.smart.off('smart.program.update', this._programUpdate);
+    if (this.smart.weather) {
+      this.smart.weather.off('weather.update', this._programUpdate);
+    }
   }
 
   _programUpdate() {
     this.updateState();
     this.html('thermostat', Template.thermostat(this.state));
+    if (this.smart.weather) {
+      this.html('weather', Template.weather(this.start));
+    }
   }
 
   updateState() {
@@ -91,6 +100,17 @@ class Main extends Base {
       current: this.toU(p.currentTemperature),
       mode: p.targetMode === 1 ? 'Heat' : p.targetMode === 2 ? 'Cool' : 'Off'
     };
+    const w = this.smart.weather && this.smart.weather.weather;
+    if (w) {
+      this.state.weather = {
+        name: w.name,
+        temperature: `${this.toU(w.temperature)} &deg;${this.smart.unit === 'f' ? 'F' : 'C'}`,
+        humidity: w.humidity,
+        description: w.description,
+        icon: w.icon
+      };
+    }
+    console.log(this.state);
   }
 
   async 'slider.update' (msg) {
