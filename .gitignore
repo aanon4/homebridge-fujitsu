@@ -105,3 +105,5 @@ dist
 
 # Other
 test.js
+smart-schedule.json
+*.bak
