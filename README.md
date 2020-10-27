@@ -1,7 +1,9 @@
 # homebridge-fujitsu-smart
 ## Homebridge plug in for Fujistu Mini Split with smart temperature support using Xiaomi sensors.
 
-**Warning** this plugin this is currently experimental, use at your own risk!
+This started life as an extension to the current mini-split module but with fan control, and rapidly got out of hand ...
+
+**Warning** this plugin this is currently experimental, use at your own risk! It will probably burn your house down.
 
 ![UI](./assets/ui.png)
 
