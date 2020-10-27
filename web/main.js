@@ -39,7 +39,6 @@ class Main extends Base {
       this.state.schedule = this.state.schedules[this.state.selected];
     }
     catch (_) {
-      console.log(_);
       this.createDefaultSliders();
     }
     this.smart.setSchedule(this.generateSchedule());
