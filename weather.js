@@ -1,9 +1,9 @@
-const EventEmitter = require('events');
+const Bus = require('./bus');
 const Weather = require('openweather-apis');
 
 const POLL_INTERVAL = 5 * 60 * 1000;
 
-class MyWeather extends EventEmitter {
+class MyWeather {
 
   start(config) {
     Weather.setAPPID(config.key);
@@ -31,7 +31,7 @@ class MyWeather extends EventEmitter {
           description: json.weather[0].description,
           icon: `https://openweathermap.org/img/wn/${json.weather[0].icon}@4x.png`
         }
-        this.emit('weather.update', this.weather);
+        Bus.emit('weather.update', this.weather);
       });
     }
     this.poller = setInterval(fetchWeather, POLL_INTERVAL);

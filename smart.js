@@ -1,14 +1,13 @@
-const EventEmitter = require('events');
+const Bus = require('./bus');
 const Feels = require('feels');
 
 const MODE_OFF = 0;
 const MODE_COOL = 2;
 const MODE_HEAT = 1;
 
-class Smart extends EventEmitter {
+class Smart {
 
   constructor() {
-    super();
     this.devices = {};
     this.sensors = null;
     this.poller = null;
@@ -64,7 +63,7 @@ class Smart extends EventEmitter {
     this.log('_updateSensors:');
     try {
       await this.sensors.updateDevices(this.devices);
-      this.emit('smart.devices.update');
+      Bus.emit('smart.devices.update', this.devices);
     }
     catch (e) {
       this.log('_updateSensors: error:', e);
@@ -143,7 +142,7 @@ class Smart extends EventEmitter {
       // Just right - leave the current mode and target 'as is'.
     }
 
-    this.emit('smart.program.update');
+    Bus.emit('smart.program.update', this.currentProgram);
 
     this.log('_updateProgram: currentProgram:', JSON.stringify(this.currentProgram, null, 2));
     //this.log('_updateProgram: referenceTemp:', this.currentProgram.currentReferenceTemperature.toFixed(1), 'C', (32 + this.currentProgram.currentReferenceTemperature / 5 * 9).toFixed(1), 'F');
@@ -212,7 +211,7 @@ class Smart extends EventEmitter {
     const copy = [].concat(schedule);
     copy.sort((a, b) => a.weektime - b.weektime + (a.trigger ? 0.5 : 0) - (b.trigger ? 0.5 : 0));
     this.schedule = copy;
-    this.emit('smart.schedule.update');
+    Bus.emit('smart.schedule.update', this.schedule);
     this._updateProgram();
   }
 

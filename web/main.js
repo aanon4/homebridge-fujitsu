@@ -2,6 +2,7 @@ const FS = require('fs');
 const Path = require('path');
 const Base = require('./base');
 const Template = require('./template');
+const Bus = require('../bus');
 
 class Main extends Base {
 
@@ -62,19 +63,15 @@ class Main extends Base {
   }
 
   watch() {
-    this.smart.on('smart.devices.update', this._programUpdate);
-    this.smart.on('smart.program.update', this._programUpdate);
-    if (this.smart.weather) {
-      this.smart.weather.on('weather.update', this._programUpdate);
-    }
+    Bus.on('smart.devices.update', this._programUpdate);
+    Bus.on('smart.program.update', this._programUpdate);
+    Bus.on('weather.update', this._programUpdate);
   }
 
   unwatch() {
-    this.smart.off('smart.devices.update', this._programUpdate);
-    this.smart.off('smart.program.update', this._programUpdate);
-    if (this.smart.weather) {
-      this.smart.weather.off('weather.update', this._programUpdate);
-    }
+    Bus.off('smart.devices.update', this._programUpdate);
+    Bus.off('smart.program.update', this._programUpdate);
+    Bus.off('weather.update', this._programUpdate);
   }
 
   _programUpdate() {
