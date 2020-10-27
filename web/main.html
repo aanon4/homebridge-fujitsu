@@ -12,6 +12,17 @@
     <title>Smart Thermostat</title>
   </head>
   <body>
+    <nav role="navigation">
+      <div id="menuToggle">
+        <input type="checkbox">
+        <span></span>
+        <span></span>
+        <span></span>
+        <ul id="menu">
+          {{> menu }}
+        </ul>
+      </div>
+    </nav>
     <div class="status">
       <div id="thermostat" class="thermostat">
         {{> thermostat}}
@@ -21,10 +32,8 @@
       </div>
     </div>
     <div class="schedule">
-      <div class="schedule-sliders">
-        {{#each schedule}}
-        {{> slide rooms=../rooms}}
-        {{/each}}
+      <div id="schedule" class="schedule-sliders">
+        {{> schedule }}
       </div>
       <div class="hours">
         <div class="padding"></div>

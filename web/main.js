@@ -15,22 +15,31 @@ class Main extends Base {
 
     try {
       const info = JSON.parse(FS.readFileSync(this.scheduleFile, { encoding: 'utf8' }));
-      this.state.schedule = info.schedule.map(sched => {
-        return {
-          title: sched.title,
-          sliders: sched.sliders.map(slider => {
-            return {
-              high: this.toU(slider.high),
-              low: this.toU(slider.low),
-              time: slider.time,
-              trigger: slider.trigger,
-              rooms: slider.rooms
-            };
-          })
-        };
-      });
+      const make = (schedule) => {
+        return schedule.map(sched => {
+          return {
+            title: sched.title,
+            sliders: sched.sliders.map(slider => {
+              return {
+                high: this.toU(slider.high),
+                low: this.toU(slider.low),
+                time: slider.time,
+                trigger: slider.trigger,
+                rooms: slider.rooms
+              };
+            })
+          };
+        });
+      }
+      this.state.selected = info.selected;
+      this.state.schedules = {
+        normal: make(info.normal),
+        vacation: make(info.vacation)
+      };
+      this.state.schedule = this.state.schedules[this.state.selected];
     }
     catch (_) {
+      console.log(_);
       this.createDefaultSliders();
     }
     this.smart.setSchedule(this.generateSchedule());
@@ -52,14 +61,21 @@ class Main extends Base {
   }
 
   createDefaultSliders() {
-    this.state.schedule = [];
-    [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ].forEach(title => {
-      const day = { title: title, sliders: [] };
-      for (let i = 0; i < 8; i++) {
-        day.sliders.push({ low: this.toU(10), high: this.toU(25), time: '', trigger: null, rooms: {} });
-      }
-      this.state.schedule.push(day);
-    });
+    const make = () => {
+      return [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ].map(title => {
+        const day = { title: title, sliders: [] };
+        for (let i = 0; i < 8; i++) {
+          day.sliders.push({ low: this.toU(10), high: this.toU(25), time: '', trigger: null, rooms: {} });
+        }
+        return day;
+      });
+    }
+    this.state.selected = 'normal';
+    this.state.schedules = {
+      normal: make(),
+      vacation: make()
+    };
+    this.state.schedule = this.state.schedules[this.state.selected];
   }
 
   watch() {
@@ -128,9 +144,26 @@ class Main extends Base {
     }
   }
 
+  async 'schedule.select' (msg) {
+    switch (msg.schedule) {
+      case 'normal':
+      case 'vacation':
+        if (msg.schedule !== this.state.selected) {
+          this.state.selected = msg.schedule;
+          this.state.schedule = this.state.schedules[this.state.selected];
+          this.html('menu', Template.menu(this.state));
+          this.html('schedule', Template.schedule(this.state));
+          this.smart.setSchedule(this.generateSchedule());
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
   saveState() {
-    const json = JSON.stringify({
-      schedule: this.state.schedule.map(sched => {
+    const unmake = (schedule) => {
+      return schedule.map(sched => {
         return {
           title: sched.title,
           sliders: sched.sliders.map(slider => {
@@ -143,7 +176,12 @@ class Main extends Base {
             };
           })
         };
-      })
+      });
+    }
+    const json = JSON.stringify({
+      selected: this.state.selected,
+      normal: unmake(this.state.schedules.normal),
+      vacation: unmake(this.state.schedules.vacation)
     });
     FS.readFile(this.scheduleFile, { encoding: 'utf8' }, (e, info) => {
       if (!e) {
