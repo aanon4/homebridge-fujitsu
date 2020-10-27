@@ -7,7 +7,8 @@ function Miio() {
 }
 
 Miio.prototype.login = async function(config, log) {
-  this.log = log;
+  //this.log = log;
+  this.log = () => {};
   this.log('_login:');
   this.username = config.username;
   this.password = config.password;

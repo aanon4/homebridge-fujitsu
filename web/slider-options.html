@@ -14,7 +14,9 @@
       <select name="{{title}}">
         <option></option>
         <option {{#if (lookup (lookup ../rooms title) 'always')}}selected{{/if}}>Always</option>
+        {{#if motion}}
         <option {{#if (lookup (lookup ../rooms title) 'occupied')}}selected{{/if}}>Occupied</option>
+        {{/if}}
       </select>
     </div>
     {{/if}}

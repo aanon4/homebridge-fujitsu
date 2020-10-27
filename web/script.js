@@ -164,7 +164,6 @@ function sliderOnChange(e) {
   config.trigger = !trigger ? null : trigger;
   config.rooms = {};
   slider.querySelectorAll('.slider-options .room select').forEach(room => {
-    console.log(room);
     switch (room.value) {
       case 'Always':
         config.rooms[room.name] = { always: true };

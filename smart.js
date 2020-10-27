@@ -28,7 +28,8 @@ class Smart extends EventEmitter {
   }
 
   start(config, log) {
-    this.log = log;
+    //this.log = log;
+    this.log = () => {};
     this.referenceDevice = config.reference;
     this.feelsLike = config.feelslike || false;
     this.holdTime = (config.hold || 60) * 60 * 1000;
@@ -174,7 +175,6 @@ class Smart extends EventEmitter {
 
     // Walk backwards from this point to find the exact match based on looping around the schedule list and handle triggers
     let pos = start - 1;
-    console.log('pos schedule', this.schedule[pos]);
     for (;;) {
       const sched = this.schedule[pos];
       if (weektime >= sched.weektime) {

@@ -31,7 +31,6 @@ class Main extends Base {
     }
     catch (_) {
       this.createDefaultSliders();
-      console.log(_);
     }
     this.smart.setSchedule(this.generateSchedule());
     this.state.rooms = [];
@@ -82,7 +81,7 @@ class Main extends Base {
     this.updateState();
     this.html('thermostat', Template.thermostat(this.state));
     if (this.smart.weather) {
-      this.html('weather', Template.weather(this.start));
+      this.html('weather', Template.weather(this.state));
     }
   }
 
@@ -110,7 +109,6 @@ class Main extends Base {
         icon: w.icon
       };
     }
-    console.log(this.state);
   }
 
   async 'slider.update' (msg) {
@@ -156,7 +154,9 @@ class Main extends Base {
           return;
         }
         FS.writeFile(`${this.scheduleFile}.bak`, info, { encoding: 'utf8' }, e => {
-          console.error('saveState: copy:', e);
+          if (e) {
+            console.error('saveState: copy:', e);
+          }
         });
       }
       FS.writeFile(this.scheduleFile, json, { encoding: 'utf8' }, e => {

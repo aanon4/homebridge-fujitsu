@@ -24,7 +24,6 @@ class MyWeather extends EventEmitter {
 
     const fetchWeather = () => {
       Weather.getAllWeather((e, json) => {
-        console.log(json);
         this.weather = {
           name: json.name,
           temperature: json.main.temp,
