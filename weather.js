@@ -11,7 +11,7 @@ class MyWeather extends EventEmitter {
     if (config.city) {
       Weather.setCity(config.city);
     }
-    else if (config.latlong) {
+    else if (config.latLong) {
       Weather.setCoordinate(config.latlong[0], config.latlong[1]);
     }
     else if (config.cityId) {
@@ -20,7 +20,7 @@ class MyWeather extends EventEmitter {
     else if (config.zipcode) {
       Weather.setZipCode(config.zipcode);
     }
-    Weather.setUnits(config.units || 'metric');
+    Weather.setUnits('metric');
 
     const fetchWeather = () => {
       Weather.getAllWeather((e, json) => {
