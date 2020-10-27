@@ -3,6 +3,8 @@
 
 **Warning** this plugin this is currently experimental, use at your own risk!
 
+![UI](./assets/ui.png)
+
 ## Installation
 
 1. Install [homebridge](https://github.com/nfarina/homebridge#installation-details)
@@ -26,13 +28,22 @@
             "reference": "THERMOSTAT ROOM",
             "feelslike": true,
             "hold": 60,
-            "unit": "F",
+            "unit": "f",
             "schedule": [{
-                "day": "Any", "from": "12:00am", "to": "11:59pm", "low": 67, "high": 75, "rooms": {
+                "day": "Any",
+                "time": "12:00am",
+                "low": 67,
+                "high": 75,
+                "rooms": {
                     "THERMOSTAT ROOM":  { "occupied":  50, "empty":  0 },
                     "Kitchen":          { "occupied": 100, "empty":  0 }
                 }
-            }]
+            }],
+            "portnr": 8080,
+            "weather": {
+                "key": "OPENWEATHERMAPAPI KEY",
+                "zipcode": "94707"
+            }
         }
     },
 ]
@@ -50,15 +61,13 @@
 | `smart.miio.username` | `Mi Home` Username |
 | `smart.miio.password` | `Mi Home` Password |
 | `smart.miio.region` _(optional)_ | Will default to `cn` which supports the latest range of sensor types, but can be set to other regions |
-| `smart.interval` _(optional)_ | Polling time for sensors (Default: 60 sec.) |
 | `smart.reference` | The room name of a sensor which is used as the temperature reference when making thermostat adjustments. This should be the sensor nearest the thermostat (the thermostat API doesn't provide its own temperature reading) |
 | `smart.feeslike` _(optional)_ | If `true` the temperatures will be adjusted based on the humidity, to better refect the temperatures rooms feel |
 | `smart.hold` _(optional)_ | Number of minutes (Default: 60 mins.) to hold the temperature without adjustment if changed externally (e.g. on the wall thermostat)
 | `smart.unit` _(optional)_ | The units (C or F) for the low and high temperatures in the schedule (Default: C) |
-| `smart.schedule` | Zero or more schedule entries describing how to control the HVAC and when room sensors are important |
+| `smart.schedule` _(optional)_ | If present, zero or more schedule entries describing how to control the HVAC and when room sensors are important. If not present, a web UI is started to allow visual configuration |
 | `smart.schedule.day` | A day `(Sun,Mon,Tue,Wed,Thu,Fri,Sat)` or a series of days `(Mon-Thu)` or `Any` specifying which day this schedule applies |
-| `smart.schedule.from` | A time `(e.g 1:00pm,12:13am,11:59pm)` when this schedule starts |
-| `smart.schedule.to` | A time when this schedule ends |
+| `smart.schedule.time` | A time `(e.g 1:00pm,12:13am,11:59pm)` when this schedule starts. It will remain active until the next schedule entry |
 | `smart.schedule.low` | The lowest the temperature should be allowed to go (in `unit`s) |
 | `smart.schedule.high` | The highest the temperature should be allowed to go (in `unit`s)  |
 | `smart.schedule.trigger` _(optional_) | An array of triggers, one of which must occur before this schedule is valid |
@@ -67,6 +76,14 @@
 | `smart.schedule.rooms` | An object of rooms, where the key is the room name. The room name should match the beginning name of the sensor `(e.g. Dining Room` has sensors `Dining Room Temperature` and `Dining Room Movement)` |
 | `smart.schedule.rooms.ROOM.occupied` | A weight from `0-100` specifying how important this schedule is, higher being more important. This weight is for when the room is occupied (or always if the room has no motion sensor) |
 | `smart.schedule.rooms.ROOM.empty` _(optional)_ | A weight for when the room has been empty for 30 minutes or more |
+| `smart.portnr` _(optional)_ | Port number for Web UI (Default: 8080) |
+| `smart.weather` _(optional)_ | If provided, allows the Web UI to display the current weather. Weather information is read from the OpenWeatherMap API. Provide one of `city`, `latLong`, `cityId` or `zipcode` |
+| `smart.weather.key` | OpenWeatherMap API key |
+| `smart.weather.lang` _(optional)_ | Language for weather information (Default: en) |
+| `smart.weather.city` _(optional)_ | City name for weather |
+| `smart.weather.latLong` _(optional)_ | `[Longitude,Latitude]` for weather |
+| `smart.weather.cityId` _(optional)_ | OpenWeatherMap city id for weather |
+| `smart.weather.zipcode` _(optional)_ | Zipcode for weather |
 
 ## Smart operation
 Smart operation uses Xiomi temperature, humidity and movement sensors to adjust the thermostat target temperature depending on where you are in your house (in a similar way to the Ecobee thermostat) and the schedule defined. Smart operation takes over the scheduling from your home thermostat and you should disable it.
@@ -87,7 +104,6 @@ This plugin will read the sensors periodically, then caclulate a weighted temper
 
 ## TODO
 - **Lots and lots of testing. Seriously this could burn your house down at the moment.**
-- Web UI to setup the schedule in a way which doesn't involve editing JSON.
 
 ## Contributions
 Portions of this software adapted from the projects listed below.  A huge thank you, for all their work.
