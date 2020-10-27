@@ -12,6 +12,7 @@ body {
   height: 200px;
   margin-bottom: 16px;
   justify-content: center;
+  max-width: 850px;
 }
 
 .thermostat .small-temp {
@@ -62,6 +63,7 @@ body {
 
 .status .thermostat {
   width: 300px;
+  background-color: #202020;
   color: white;
   border: solid 1px #c0c0c0;
   border-radius: 100px;
@@ -76,9 +78,11 @@ body {
   color: white;
   font-size: 14px;
   margin-right: 28px;
+  max-width: 850px;
 }
 .schedule-sliders {
   flex-grow: 1;
+  background-color: #202020;
   border: solid 1px #c0c0c0;
   border-radius: 15px;
   margin-right: -28px;
@@ -152,7 +156,7 @@ body {
 }
 .slider-options input {
   width: 125px;
-  background-color: #505355;
+  background-color: transparent;
   color: white;
   border-width: 0;
   font: inherit;
@@ -191,7 +195,7 @@ body {
   padding: 0 2px;
   font-size: 12px;
   color: #c0c0c0;
-  background-color: #505355;
+  background-color: #303030;
 }
 
 .schedule .hours {

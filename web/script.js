@@ -242,7 +242,6 @@ function slider(config) {
   const elem = document.getElementById(config.id);
   elem._config = config;
   tippy(elem.querySelector('.slider-inner'), {
-    theme: "material",
     trigger: "mousedown",
     placement: "left",
     interactive: true,
