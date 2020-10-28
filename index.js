@@ -66,7 +66,7 @@ class Thermostat {
     this.keyCurrentHeatingCoolingState = 0;
     this.keyFanSpeed = 0;
 
-    this.log(this.name);
+    this.log.debug(this.name);
     this.service = new Service.Thermostat(this.name);
     this.fan = new Service.Fanv2(`${this.name} Fan`);
     this.api = require('./fglairAPI.js')
@@ -98,7 +98,7 @@ class Thermostat {
         config.smart.sensors = miio;
         this.smart.start(config.smart, this.log);
         if (!config.smart.schedule) {
-          this.web.start(this.smart, config.smart, HbAPI);
+          this.web.start(this.smart, config.smart, HbAPI, this.log);
         }
       });
     }
@@ -186,19 +186,19 @@ class Thermostat {
   }
 
   setTargetHeatingCoolingState(val, cb) {
-    this.log("Setting Target Mode to " + val + ":" + HK2FJ[val]);
+    this.log.debug("Setting Target Mode to " + val + ":" + HK2FJ[val]);
     this._pauseProgram();
     this.api.setDeviceProp(this.keyCurrentHeatingCoolingState, HK2FJ[val], cb);
   }
 
   setTargetTemperature(val, cb) {
-    this.log("Setting Temperature to " + val);
+    this.log.debug("Setting Temperature to " + val);
     this._pauseProgram();
     this.api.setDeviceProp(this.keyTargetTemperature, Math.round(val * 10), cb);
   }
 
   setFanActive(val, cb) {
-    this.log('setFanActive', val);
+    this.log.debug('setFanActive', val);
     this._pauseProgram();
     if (!val) {
       this.api.setDeviceProp(this.keyCurrentHeatingCoolingState, FJ_OFF, cb);
@@ -209,7 +209,7 @@ class Thermostat {
   }
 
   setTargetFanState(val, cb) {
-    this.log('setTargetFanState', val ? 'automatic' : 'manual');
+    this.log.debug('setTargetFanState', val ? 'automatic' : 'manual');
     this._pauseProgram();
     if (val === HK_FAN_MANUAL) {
       this.setRotationSpeed(this.fan.getCharacteristic(Characteristic.RotationSpeed).value, cb);
@@ -221,7 +221,7 @@ class Thermostat {
   }
 
   setRotationSpeed(val, cb) {
-    this.log('setRotationSpeed', val);
+    this.log.debug('setRotationSpeed', val);
     this._pauseProgram();
     let fanSpeed = FJ_FAN_AUTO;
     if (val <= HK_FAN_QUIET) {

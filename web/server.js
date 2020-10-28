@@ -10,8 +10,9 @@ class Web {
     this.app = null;
   }
 
-  start(smart, config, hap) {
+  start(smart, config, hap, log) {
 
+    this.log = log;
     this.portnr = config.portnr || 8080;
     this.app = Websockify(new Koa());
     this.app.on('error', err => console.error(err));
@@ -21,7 +22,7 @@ class Web {
     const root = Router();
     const wsroot = Router();
 
-    Pages(root, wsroot, smart, hap);
+    Pages(root, wsroot, smart, hap, log);
 
     this.app.use(root.middleware());
     this.app.ws.use(wsroot.middleware());

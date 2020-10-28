@@ -73,7 +73,7 @@ This started life as an extension to the current mini-split module but with fan 
 | `smart.schedule.low` | The lowest the temperature should be allowed to go (in `unit`s) |
 | `smart.schedule.high` | The highest the temperature should be allowed to go (in `unit`s)  |
 | `smart.schedule.trigger` _(optional_) | An array of triggers, one of which must occur before this schedule is valid |
-| `smart.schedule.trigger.type` | The trigger type (Default: motion)
+| `smart.schedule.trigger.type` _(optional)_ | The trigger type (Default: motion)
 | `smart.schedule.trigger.room` | The room containing the motion trigger |
 | `smart.schedule.rooms` | An object of rooms, where the key is the room name. The room name should match the beginning name of the sensor `(e.g. Dining Room` has sensors `Dining Room Temperature` and `Dining Room Movement)` |
 | `smart.schedule.rooms.ROOM.occupied` | A weight from `0-100` specifying how important this schedule is, higher being more important. This weight is for when the room is occupied (or always if the room has no motion sensor) |

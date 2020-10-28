@@ -27,8 +27,7 @@ class Smart {
   }
 
   start(config, log) {
-    //this.log = log;
-    this.log = () => {};
+    this.log = log;
     this.referenceDevice = config.reference;
     this.feelsLike = config.feelslike || false;
     this.holdTime = (config.hold || 60) * 60 * 1000;
@@ -60,13 +59,13 @@ class Smart {
   }
 
   async _updateSensors() {
-    this.log('_updateSensors:');
+    this.log.debug('_updateSensors:');
     try {
       await this.sensors.updateDevices(this.devices);
       Bus.emit('smart.devices.update', this.devices);
     }
     catch (e) {
-      this.log('_updateSensors: error:', e);
+      this.log.error('_updateSensors: error:', e);
     }
   }
 
@@ -108,7 +107,7 @@ class Smart {
             tempC = Feels.humidex(tempC, device.environ.humidity);
           }
           totalWeightedTemperature += tempC * weight;
-          this.log('_updateProgram:', name, tempC, 'C', weight);
+          this.log.debug('_updateProgram:', name, tempC, 'C', weight);
         }
       }
 
@@ -144,14 +143,14 @@ class Smart {
 
     Bus.emit('smart.program.update', this.currentProgram);
 
-    this.log('_updateProgram: currentProgram:', JSON.stringify(this.currentProgram, null, 2));
-    //this.log('_updateProgram: referenceTemp:', this.currentProgram.currentReferenceTemperature.toFixed(1), 'C', (32 + this.currentProgram.currentReferenceTemperature / 5 * 9).toFixed(1), 'F');
-    //this.log('_updateProgram: currentTemp:', this.currentProgram.currentTemperature.toFixed(1), 'C', (32 + this.currentProgram.currentTemperature / 5 * 9).toFixed(1), 'F');
-    //this.log('_updateProgram: currentTempDiff:', (this.currentProgram.currentTemperature - this.currentProgram.currentReferenceTemperature).toFixed(1), 'C', ((this.currentProgram.currentTemperature - this.currentProgram.currentReferenceTemperature) / 5 * 9).toFixed(1), 'F');
+    this.log.debug('_updateProgram: currentProgram:', JSON.stringify(this.currentProgram, null, 2));
+    //this.log.debug('_updateProgram: referenceTemp:', this.currentProgram.currentReferenceTemperature.toFixed(1), 'C', (32 + this.currentProgram.currentReferenceTemperature / 5 * 9).toFixed(1), 'F');
+    //this.log.debug('_updateProgram: currentTemp:', this.currentProgram.currentTemperature.toFixed(1), 'C', (32 + this.currentProgram.currentTemperature / 5 * 9).toFixed(1), 'F');
+    //this.log.debug('_updateProgram: currentTempDiff:', (this.currentProgram.currentTemperature - this.currentProgram.currentReferenceTemperature).toFixed(1), 'C', ((this.currentProgram.currentTemperature - this.currentProgram.currentReferenceTemperature) / 5 * 9).toFixed(1), 'F');
   }
 
   _getSchedule() {
-    this.log('_getSchedule:');
+    this.log.debug('_getSchedule:');
     const now = new Date();
     const weektime = (now.getDay() * 24 + now.getHours()) * 60 + now.getMinutes();
 
@@ -194,14 +193,14 @@ class Smart {
         }
         // Return schedule which has been triggered or requires no trigger
         if (!sched.trigger || sched._triggered) {
-          this.log('_getSchedule: program:', sched);
+          this.log.debug('_getSchedule: program:', sched);
           return sched;
         }
       }
       pos = (this.schedule.length + pos - 1) % this.schedule.length;
       if (pos === start) {
         // No schedule to run
-        this.log('_getSchedule: program: none');
+        this.log.debug('_getSchedule: program: none');
         return null;
       }
     }
@@ -216,7 +215,7 @@ class Smart {
   }
 
   buildSchedule(schedule) {
-    this.log('buildSchedule:', schedule);
+    this.log.debug('buildSchedule:', schedule);
 
     // Format: eg. 12:00am, 12:00pm, 1:10am, 2:05p
     function parseTime(time) {
@@ -276,10 +275,10 @@ class Smart {
         });
       }
       else {
-        this.log('buildSchedule: bad schedule:', sched);
+        this.log.debug('buildSchedule: bad schedule:', sched);
       }
     });
-    this.log('buildSchedule: result:', computed);
+    this.log.debug('buildSchedule: result:', computed);
 
     return computed;
   }

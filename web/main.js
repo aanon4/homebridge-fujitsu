@@ -6,8 +6,8 @@ const Bus = require('../bus');
 
 class Main extends Base {
 
-  constructor(smart, hap) {
-    super('main');
+  constructor(smart, hap, log) {
+    super('main', log);
     this._programUpdate = this._programUpdate.bind(this);
     this._deviceUpdate = this._deviceUpdate.bind(this);
     this._weatherUpdate = this._weatherUpdate.bind(this);

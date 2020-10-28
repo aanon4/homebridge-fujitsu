@@ -1,9 +1,9 @@
 const Template = require('./template');
-const Log = require('debug')('web');
 
 class Base {
 
-  constructor(name) {
+  constructor(name, log) {
+    this.log = log;
     this._name = name;
     this._websocket = null;
     this._pending = {};
@@ -53,16 +53,16 @@ class Base {
         let fn = this[msg.cmd];
         if (fn) {
           try {
-            Log(JSON.stringify(msg, null, 2));
+            this.log.debug(JSON.stringify(msg, null, 2));
             await fn.call(this, msg.value);
           }
           catch (e) {
-            Log(e);
+            this.log.error(e);
           }
         }
       }
       catch (e) {
-        Log(e);
+        this.log.error(e);
       }
     });
 
@@ -76,7 +76,7 @@ class Base {
       }));
     }
     catch (e) {
-      Log(e);
+      this.log.error(e);
     }
   }
 

@@ -1,9 +1,9 @@
 const FS = require('fs');
 const Main = require('./main');
 
-module.exports = (root, wsroot, smart, hap) => {
+module.exports = (root, wsroot, smart, hap, log) => {
 
-  const main = new Main(smart, hap);
+  const main = new Main(smart, hap, log);
   const pages = {
     '/':                          { fn: main.main },
     '/ws':                        { fn: main.ws },

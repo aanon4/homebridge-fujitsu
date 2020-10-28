@@ -7,9 +7,8 @@ function Miio() {
 }
 
 Miio.prototype.login = async function(config, log) {
-  //this.log = log;
-  this.log = () => {};
-  this.log('_login:');
+  this.log = log;
+  this.log.debug('_login:');
   this.username = config.username;
   this.password = config.password;
   this.region = config.region || 'cn';
@@ -17,7 +16,7 @@ Miio.prototype.login = async function(config, log) {
 }
 
 Miio.prototype.updateDevices = async function(devices) {
-  this.log('updateDevices:');
+  this.log.debug('updateDevices:');
   function extractName(name) {
     const post = [ ' Temp', ' Move', ' Motion' ];
     for (let i = 0; i < post.length; i++) {
@@ -30,7 +29,7 @@ Miio.prototype.updateDevices = async function(devices) {
   }
   const miidevices = await Mihome.miCloudProtocol.getDevices(null, { country: this.region });
   miidevices.forEach(dev => {
-    this.log('updateDevices: device', dev);
+    this.log.debug('updateDevices: device', dev);
     const name = extractName(dev.name);
     switch (dev.model) {
       case 'lumi.weather.v1':
@@ -55,7 +54,7 @@ Miio.prototype.updateDevices = async function(devices) {
     }
   });
 
-  this.log('updateDevices:', devices);
+  this.log.debug('updateDevices:', devices);
 }
 
 module.exports = new Miio();
