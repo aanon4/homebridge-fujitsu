@@ -36,7 +36,8 @@ class Main extends Base {
       this.state.selected = info.selected;
       this.state.schedules = {
         normal: make(info.normal),
-        vacation: make(info.vacation)
+        vacation: make(info.vacation),
+        away: make(info.away)
       };
       this.state.schedule = this.state.schedules[this.state.selected];
     }
@@ -74,7 +75,8 @@ class Main extends Base {
     this.state.selected = 'normal';
     this.state.schedules = {
       normal: make(),
-      vacation: make()
+      vacation: make(),
+      away: make()
     };
     this.state.schedule = this.state.schedules[this.state.selected];
   }
@@ -159,6 +161,7 @@ class Main extends Base {
     switch (msg.schedule) {
       case 'normal':
       case 'vacation':
+      case 'away':
         if (msg.schedule !== this.state.selected) {
           this.state.selected = msg.schedule;
           this.state.schedule = this.state.schedules[this.state.selected];
@@ -193,7 +196,8 @@ class Main extends Base {
     const json = JSON.stringify({
       selected: this.state.selected,
       normal: unmake(this.state.schedules.normal),
-      vacation: unmake(this.state.schedules.vacation)
+      vacation: unmake(this.state.schedules.vacation),
+      away: unmake(this.state.schedules.away)
     });
     FS.readFile(this.scheduleFile, { encoding: 'utf8' }, (e, info) => {
       if (!e) {
