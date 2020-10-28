@@ -9,6 +9,8 @@ class Main extends Base {
   constructor(smart, hap) {
     super('main');
     this._programUpdate = this._programUpdate.bind(this);
+    this._deviceUpdate = this._deviceUpdate.bind(this);
+    this._weatherUpdate = this._weatherUpdate.bind(this);
 
     this.smart = smart;
     this.scheduleFile = Path.join(hap.user.persistPath(), 'smart-schedule.json');
@@ -78,23 +80,33 @@ class Main extends Base {
   }
 
   watch() {
-    Bus.on('smart.devices.update', this._programUpdate);
+    Bus.on('smart.devices.update', this._deviceUpdate);
     Bus.on('smart.program.update', this._programUpdate);
-    Bus.on('weather.update', this._programUpdate);
+    Bus.on('weather.update', this._weatherUpdate);
   }
 
   unwatch() {
-    Bus.off('smart.devices.update', this._programUpdate);
+    Bus.off('smart.devices.update', this._deviceUpdate);
     Bus.off('smart.program.update', this._programUpdate);
-    Bus.off('weather.update', this._programUpdate);
+    Bus.off('weather.update', this._weatherUpdate);
   }
 
   _programUpdate() {
     this.updateState();
     this.html('thermostat', Template.thermostat(this.state));
-    if (this.smart.weather) {
-      this.html('weather', Template.weather(this.state));
+  }
+
+  _deviceUpdate() {
+    const before = JSON.stringify(this.state.rooms);
+    this.updateState();
+    if (JSON.stringify(this.state.rooms) != before) {
+      this.html('schedule', Template.schedule(this.state));
     }
+  }
+
+  _weatherUpdate() {
+    this.updateState();
+    this.html('weather', Template.weather(this.state));
   }
 
   updateState() {
