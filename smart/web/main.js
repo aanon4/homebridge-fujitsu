@@ -123,7 +123,7 @@ class Main extends Base {
       high: this.toU(p.targetHighTempC),
       low: this.toU(p.targetLowTempC),
       current: this.toU(p.currentTemperature),
-      mode: p.targetMode === 1 ? 'Heat' : p.targetMode === 2 ? 'Cool' : 'Off'
+      mode: p.pause > Date.now() ? 'Hold' : p.targetMode === 1 ? 'Heat' : p.targetMode === 2 ? 'Cool' : 'Off'
     };
     const w = this.smart.weather && this.smart.weather.weather;
     if (w) {

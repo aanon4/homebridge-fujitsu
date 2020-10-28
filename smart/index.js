@@ -26,14 +26,17 @@ class Smart {
     };
   }
 
-  start(config, log) {
+  async start(config, log, hbapi) {
     this.log = log;
+    this.hbapi = hbapi;
     this.referenceDevice = config.reference;
     this.feelsLike = config.feelslike || false;
     this.holdTime = (config.hold || 60) * 60 * 1000;
     this.unit = (config.unit || 'c').toLowerCase();
-    this.sensors = config.sensors;
     this.currentProgram.pause = 0;
+
+    await this._miio(config);
+    this._web(config);
 
     this.setSchedule(this.buildSchedule(config.schedule));
 
@@ -55,6 +58,21 @@ class Smart {
     if (this.poller) {
       clearTimeout(this.poller);
       this.poller = null;
+    }
+  }
+
+  async _miio(config) {
+    if (config.miio) {
+      const miio = require('./sensors/miio');
+      await miio.login(config.miio, this.log);
+      this.sensors = miio;
+    }
+  }
+
+  _web(config) {
+    if (!config.schedule) {
+      this.web = require('./web/server');
+      this.web.start(this, config, this.hbapi, this.log);
     }
   }
 

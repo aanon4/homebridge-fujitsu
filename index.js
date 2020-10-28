@@ -90,18 +90,9 @@ class Thermostat {
     });
 
     this.smart = require('./smart');
-    this.web = require('./web/server');
-    // Enable MIIO sensors (if configured)
-    if (config.smart && config.smart.miio) {
-      const miio = require('./sensors/miio');
-      miio.login(config.smart.miio, this.log).then(() => {
-        config.smart.sensors = miio;
-        this.smart.start(config.smart, this.log);
-        if (!config.smart.schedule) {
-          this.web.start(this.smart, config.smart, HbAPI, this.log);
-        }
-      });
-    }
+    this.smart.start(config.smart, this.log, HbAPI).catch(e => {
+      this.log.error(e);
+    });
   }
 
   updateAll(ctx) {

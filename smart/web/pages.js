@@ -9,10 +9,10 @@ module.exports = (root, wsroot, smart, hap, log) => {
     '/ws':                        { fn: main.ws },
     '/css/main.css':              { path: `${__dirname}/main.css`, type: 'text/css' },
     '/js/script.js':              { path: `${__dirname}/script.js`, type: 'text/javascript' },
-    '/js/popper.js':              { path: `${__dirname}/../node_modules/@popperjs/core/dist/umd/popper.min.js`, type: 'text/javascript' },
-    '/js/tippy.js':               { path: `${__dirname}/../node_modules/tippy.js/dist/tippy-bundle.umd.min.js`, type: 'text/javascript' },
-    '/css/tippy.css':             { path: `${__dirname}/../node_modules/tippy.js/dist/tippy.css`, type: 'text/css' },
-    '/js/time-input-polyfill.js': { path: `${__dirname}/../node_modules/time-input-polyfill/dist/time-input-polyfill.min.js`, type: 'text/javascript' }
+    '/js/popper.js':              { path: `${__dirname}/../../node_modules/@popperjs/core/dist/umd/popper.min.js`, type: 'text/javascript' },
+    '/js/tippy.js':               { path: `${__dirname}/../../node_modules/tippy.js/dist/tippy-bundle.umd.min.js`, type: 'text/javascript' },
+    '/css/tippy.css':             { path: `${__dirname}/../../node_modules/tippy.js/dist/tippy.css`, type: 'text/css' },
+    '/js/time-input-polyfill.js': { path: `${__dirname}/../../node_modules/time-input-polyfill/dist/time-input-polyfill.min.js`, type: 'text/javascript' }
   }
 
   if (!process.env.DEBUG) {
