@@ -271,7 +271,7 @@ nav {
 #menuToggle a
 {
   text-decoration: none;
-  color: #232323;
+  color: #e0e0e0;
   transition: color 0.3s ease;
 }
 #menuToggle a:hover
@@ -368,7 +368,6 @@ nav {
 {
   padding: 10px 0;
   font-size: 18px;
-  color: #e0e0e0;
 }
 /*
  * And let's slide it in from the left
@@ -377,3 +376,15 @@ nav {
 {
   transform: none;
 }
+#menu .group {
+  color: white;
+  font-size: 22px;
+}
+#menu .group > div {
+  margin-bottom: 10px;
+}
+#menu .group a {
+  display: block;
+  margin-left: 6px;
+}
+
