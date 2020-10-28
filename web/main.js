@@ -165,6 +165,7 @@ class Main extends Base {
           this.html('menu', Template.menu(this.state));
           this.html('schedule', Template.schedule(this.state));
           this.smart.setSchedule(this.generateSchedule());
+          this.saveState();
         }
         break;
       default:
