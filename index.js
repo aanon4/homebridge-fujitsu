@@ -135,9 +135,9 @@ class Thermostat {
         ctx._pauseProgram();
       }
 
-      if (Date.now() < ctx.smart.currentProgram.pause) {
+      if (Date.now() < ctx.smart.currentProgram.pauseUntil) {
         // Program on hold. Update local characteristics only
-        ctx.service.updateCharacteristic(Characteristic.TargetTemperature, remote.targetTemperature);
+        ctx.service.updateCharacteristic(Characteristic.TargetTemperature, remote.targetTemperatureC);
         ctx.service.updateCharacteristic(Characteristic.TargetHeatingCoolingState, remote.targetHeatingCoolingState);
         ctx.fan.updateCharacteristic(Characteristic.Active, remote.targetHeatingCoolingState === Characteristic.CurrentHeatingCoolingState.OFF ? 0 : 1);
         ctx.fan.updateCharacteristic(Characteristic.RotationSpeed,
@@ -152,28 +152,28 @@ class Thermostat {
         // Update thermostat from program (use setCharacteristic so we call the relevant 'set' listeners)
         // Save and restore the pause time as this will get updated when we update the characteristics, and we don't want
         // to keep that.
-        const savedPaused = ctx.smart.currentProgram.pause;
+        const savedPaused = ctx.smart.currentProgram.pauseUntil;
         ctx.service.setCharacteristic(Characteristic.TargetHeatingCoolingState, ctx.smart.currentProgram.targetMode);
-        ctx.service.setCharacteristic(Characteristic.TargetTemperature, ctx.smart.currentProgram.targetTemperature);
+        ctx.service.setCharacteristic(Characteristic.TargetTemperature, ctx.smart.currentProgram.targetTemperatureC);
         ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_AUTO);
-        ctx.smart.currentProgram.pause = savedPaused;
+        ctx.smart.currentProgram.pauseUntil = savedPaused;
       }
 
       ctx.service.updateCharacteristic(Characteristic.CurrentHeatingCoolingState, remote.targetHeatingCoolingState);
-      if (ctx.smart.currentProgram.currentTemperature === null) {
+      if (ctx.smart.currentProgram.currentTemperatureC === null) {
         // If we don't know the current temperature (no sensors), we just have to use the target temperature
-        ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, remote.targetTemperature);
+        ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, remote.targetTemperatureC);
       }
       else {
-        ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, ctx.smart.currentProgram.currentTemperature);
+        ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, ctx.smart.currentProgram.currentTemperatureC);
       }
 
-      ctx.log("[" + ctx.serial + "] temp: " + ctx.targetTemperature + "C, mode: " + ctx.targetHeatingCoolingState);
+      ctx.log("[" + ctx.serial + "] temp: " + ctx.targetTemperatureC + "C, mode: " + ctx.targetHeatingCoolingState);
     });
   }
 
   _pauseProgram() {
-    this.smart.currentProgram.pause = Date.now() + this.smart.holdTime;
+    this.smart.currentProgram.pauseUnil = Date.now() + this.smart.holdTime;
   }
 
   setTargetHeatingCoolingState(val, cb) {

@@ -27,14 +27,13 @@ class Smart {
     this.restoreAwaySchedule = null;
     this.currentProgram = {
       targetMode: MODE_OFF,
-      targetTemperature: null,
-      currentReferenceTemperature: null,
-      currentTemperature: null,
-      originalTargetLowTempC: null,
-      originalTargetHighTempC: null,
-      targetHighTempC: null,
-      targetLowTempC: null,
-      pause: Number.MAX_SAFE_INTEGER
+      currentTemperatureC: null,
+      targetTemperatureC: null,
+      programLowTempC: null,
+      programHighTempC: null,
+      adjustedHighTempC: null,
+      adjustedLowTempC: null,
+      pauseUntil: 0
     };
   }
 
@@ -46,7 +45,7 @@ class Smart {
     this.feelsLike = config.feelslike || false;
     this.holdTime = (config.hold || 60) * 60 * 1000;
     this.unit = (config.unit || 'c').toLowerCase();
-    this.currentProgram.pause = 0;
+    this.currentProgramUntil = 0;
     this.autoAway = config.autoaway || false;
 
     if (config.miio) {
@@ -115,15 +114,15 @@ class Smart {
 
   _updateProgram() {
     // Current reference temperature
-    this.currentProgram.currentReferenceTemperature = null;
+    let currentReferenceTemperature = null;
     const refdevice = this.devices[this.referenceDevice];
     if (refdevice && refdevice.environ && refdevice.environ.online) {
-      this.currentProgram.currentReferenceTemperature = refdevice.environ.temperature;
+      currentReferenceTemperature = refdevice.environ.temperature;
     }
 
-    let targetLowTempC = null;
-    let targetHighTempC = null;
-    this.currentProgram.currentTemperature = this.currentProgram.currentReferenceTemperature;
+    let adjustedLowTempC = null;
+    let adjustedHighTempC = null;
+    this.currentProgram.currentTemperatureC = currentReferenceTemperature;
 
     // Generate a current temperature based on the temperature of the sensors.
     // These values are weighted, based on a schedule and/or motion associated
@@ -131,8 +130,8 @@ class Smart {
     const program = this._getSchedule();
     if (program && refdevice) {
 
-      targetLowTempC = program.low;
-      targetHighTempC = program.high;
+      adjustedLowTempC = program.low;
+      adjustedHighTempC = program.high;
 
       let totalWeight = 0;
       let totalWeightedTemperature = 0;
@@ -156,34 +155,34 @@ class Smart {
       }
 
       if (totalWeight !== 0) {
-        this.currentProgram.currentTemperature = totalWeightedTemperature / totalWeight;
-        const currentTempDiffC = this.currentProgram.currentTemperature - this.currentProgram.currentReferenceTemperature;
-        targetLowTempC -= currentTempDiffC;
-        targetHighTempC -= currentTempDiffC;
+        this.currentProgram.currentTemperatureC = totalWeightedTemperature / totalWeight;
+        const currentTempDiffC = this.currentProgram.currentTemperatureC - currentReferenceTemperature;
+        adjustedLowTempC -= currentTempDiffC;
+        adjustedHighTempC -= currentTempDiffC;
       }
     }
 
-    this.currentProgram.targetLowTempC = targetLowTempC;
-    this.currentProgram.targetHighTempC = targetHighTempC;
+    this.currentProgram.adjustedLowTempC = adjustedLowTempC;
+    this.currentProgram.adjustedHighTempC = adjustedHighTempC;
     if (program) {
-      this.currentProgram.originalTargetLowTempC = program.low;
-      this.currentProgram.originalTargetHighTempC = program.high;
+      this.currentProgram.programLowTempC = program.low;
+      this.currentProgram.programHighTempC = program.high;
     }
 
-    if (targetLowTempC === null || targetHighTempC === null) {
+    if (adjustedLowTempC === null || adjustedHighTempC === null) {
       // No active program, so turn it off
       this.currentProgram.targetMode = MODE_OFF;
-      this.currentProgram.targetTemperature = null;
+      this.currentProgram.targetTemperatureC = null;
     }
-    else if (this.currentProgram.currentTemperature < targetLowTempC) {
+    else if (this.currentProgram.currentTemperatureC < adjustedLowTempC) {
       // Too cold - heat
       this.currentProgram.targetMode = MODE_HEAT;
-      this.currentProgram.targetTemperature = targetLowTempC;
+      this.currentProgram.targetTemperatureC = adjustedLowTempC;
     }
-    else if (this.currentProgram.currentTemperature > targetHighTempC) {
+    else if (this.currentProgram.currentTemperatureC > adjustedHighTempC) {
       // Too hot - cool
       this.currentProgram.targetMode = MODE_COOL;
-      this.currentProgram.targetTemperature = targetHighTempC;
+      this.currentProgram.targetTemperatureC = adjustedHighTempC;
     }
     else {
       // Just right - leave the current mode and target 'as is'.

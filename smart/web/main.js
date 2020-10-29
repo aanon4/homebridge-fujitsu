@@ -75,10 +75,10 @@ class Main extends Base {
     }
     const p = this.smart.currentProgram;
     this.state.thermostat = {
-      high: this.toU(p.originalTargetHighTempC),
-      low: this.toU(p.originalTargetLowTempC),
-      current: this.toU(p.currentTemperature),
-      mode: p.pause > Date.now() ? 'Hold' :
+      high: this.toU(p.programHighTempC),
+      low: this.toU(p.programLowTempC),
+      current: this.toU(p.currentTemperatureC),
+      mode: p.pauseUntil > Date.now() ? 'Hold' :
             this.smart.restoreAwaySchedule ? 'Auto Away' :
             p.targetMode === 1 ? 'Heat' :
             p.targetMode === 2 ? 'Cool' : 'Off'
