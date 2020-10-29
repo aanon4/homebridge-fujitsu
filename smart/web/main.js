@@ -22,6 +22,9 @@ class Main extends Base {
     Bus.on('smart.devices.update', this._deviceUpdate);
     Bus.on('smart.program.update', this._programUpdate);
     Bus.on('weather.update', this._weatherUpdate);
+    this.updateState();
+    this.html('thermostat', Template.thermostat(this.state));
+    this.html('weather', Template.weather(this.state));
   }
 
   unwatch() {
@@ -77,6 +80,8 @@ class Main extends Base {
     this.state.thermostat = {
       high: this.toU(p.programHighTempC),
       low: this.toU(p.programLowTempC),
+      adjustedhigh: this.toU(p.adjustedHighTempC),
+      adjustedlow: this.toU(p.adjustedLowTempC),
       current: this.toU(p.currentTemperatureC),
       mode: p.pauseUntil > Date.now() ? 'Hold' :
             this.smart.restoreAwaySchedule ? 'Auto Away' :
