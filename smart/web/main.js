@@ -84,7 +84,7 @@ class Main extends Base {
       adjustedlow: this.toU(p.adjustedLowTempC),
       current: this.toU(p.currentTemperatureC),
       mode: p.pauseUntil > Date.now() ? 'Hold' :
-            this.smart.restoreAwaySchedule ? 'Auto Away' :
+            this.smart.restoreAwaySchedule ? 'Away' :
             p.targetMode === 1 ? 'Heat' :
             p.targetMode === 2 ? 'Cool' : 'Off'
     };
@@ -109,6 +109,11 @@ class Main extends Base {
     if (sched) {
       const slider = sched.sliders[idx];
       if (slider) {
+        if (msg.low > msg.high) {
+          const high = msg.low;
+          msg.low = msg.high;
+          msg.high = high;
+        }
         slider.high = msg.high;
         slider.low = msg.low;
         slider.time = msg.time;
