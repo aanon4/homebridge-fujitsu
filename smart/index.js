@@ -30,6 +30,8 @@ class Smart {
       targetTemperature: null,
       currentReferenceTemperature: null,
       currentTemperature: null,
+      originalTargetLowTempC: null,
+      originalTargetHighTempC: null,
       targetHighTempC: null,
       targetLowTempC: null,
       pause: Number.MAX_SAFE_INTEGER
@@ -163,6 +165,10 @@ class Smart {
 
     this.currentProgram.targetLowTempC = targetLowTempC;
     this.currentProgram.targetHighTempC = targetHighTempC;
+    if (program) {
+      this.currentProgram.originalTargetLowTempC = program.low;
+      this.currentProgram.originalTargetHighTempC = program.high;
+    }
 
     if (targetLowTempC === null || targetHighTempC === null) {
       // No active program, so turn it off
@@ -186,9 +192,6 @@ class Smart {
     Bus.emit('smart.program.update', this.currentProgram);
 
     this.log.debug('_updateProgram: currentProgram:', JSON.stringify(this.currentProgram, null, 2));
-    //this.log.debug('_updateProgram: referenceTemp:', this.currentProgram.currentReferenceTemperature.toFixed(1), 'C', (32 + this.currentProgram.currentReferenceTemperature / 5 * 9).toFixed(1), 'F');
-    //this.log.debug('_updateProgram: currentTemp:', this.currentProgram.currentTemperature.toFixed(1), 'C', (32 + this.currentProgram.currentTemperature / 5 * 9).toFixed(1), 'F');
-    //this.log.debug('_updateProgram: currentTempDiff:', (this.currentProgram.currentTemperature - this.currentProgram.currentReferenceTemperature).toFixed(1), 'C', ((this.currentProgram.currentTemperature - this.currentProgram.currentReferenceTemperature) / 5 * 9).toFixed(1), 'F');
   }
 
   _getSchedule() {
