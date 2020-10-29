@@ -1,11 +1,12 @@
 const FS = require('fs');
 const Path = require('path');
-const Bus = require('./bus');
 const Feels = require('feels');
+const Bus = require('./bus');
 
 const MODE_OFF = 0;
 const MODE_COOL = 2;
 const MODE_HEAT = 1;
+const MODE_AUTO = 3;
 
 const AWAY_WAIT = 60; // 1 hour
 const AWAY_VALID = [
@@ -176,12 +177,12 @@ class Smart {
     }
     else if (this.currentProgram.currentTemperatureC < adjustedLowTempC) {
       // Too cold - heat
-      this.currentProgram.targetMode = MODE_HEAT;
+      this.currentProgram.targetMode = (adjustedLowTempC === adjustedHighTempC ? MODE_AUTO : MODE_HEAT);
       this.currentProgram.targetTemperatureC = adjustedLowTempC;
     }
     else if (this.currentProgram.currentTemperatureC > adjustedHighTempC) {
       // Too hot - cool
-      this.currentProgram.targetMode = MODE_COOL;
+      this.currentProgram.targetMode = (adjustedLowTempC === adjustedHighTempC ? MODE_AUTO : MODE_COOL);
       this.currentProgram.targetTemperatureC = adjustedHighTempC;
     }
     else {
