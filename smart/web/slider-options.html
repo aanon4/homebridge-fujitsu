@@ -1,18 +1,18 @@
 <div class="slider-options">
   <div class="box-label">Program</div>
   <div class="box">
-    <div><label>High</label><input class="high" type="number" min="0" max="99" value="{{high}}">&deg;F</div>
-    <div><label>Low</label><input class="low" type="number" min="0" max="99" value="{{low}}">&deg;F</div>
+    <div><label>High</label><input class="high" type="number" min="0" max="99" value="{{high}}">&deg;{{unit}}</div>
+    <div><label>Low</label><input class="low" type="number" min="0" max="99" value="{{low}}">&deg;{{unit}}</div>
     <div><label>Time</label><input title="time" class="time" type="time" value="{{time}}"></div>
   </div>
-  <div class="box-label">Rooms</div>
+  <div class="box-label">Temperatures</div>
   <div class="box">
     {{#each availablerooms}}
     {{#if environ}}
     <div class="room">
       <div>{{title}}</div>
       <select name="{{title}}">
-        <option></option>
+        <option value="">{{temperature}} &deg;{{../unit}}</option>
         <option {{#if (lookup (lookup ../rooms title) 'always')}}selected{{/if}}>Always</option>
         {{#if motion}}
         <option {{#if (lookup (lookup ../rooms title) 'occupied')}}selected{{/if}}>Occupied</option>

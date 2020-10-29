@@ -65,6 +65,7 @@ class Main extends Base {
   }
 
   updateState() {
+    this.state.unit = this.smart.unit.toUpperCase();
     if (this.state.selected !== this.smart.selectedSchedule) {
       this.state.selected = this.smart.selectedSchedule;
       this.state.schedule = this._smart2visual(this.smart.getSchedule(this.state.selected));
@@ -74,7 +75,12 @@ class Main extends Base {
     const devices = this.smart.getDevices();
     for (let name in devices) {
       const device = devices[name];
-      this.state.rooms.push({ title: name, environ: !!device.environ, motion: !!device.motion });
+      this.state.rooms.push({
+        title: name,
+        environ: !!device.environ,
+        motion: !!device.motion,
+        temperature: device.environ && this.toU(device.environ.temperature)
+      });
     }
     const p = this.smart.currentProgram;
     this.state.thermostat = {
@@ -101,7 +107,6 @@ class Main extends Base {
   }
 
   async 'slider.update' (msg) {
-    // id, time, high, low
     const id = msg.id.split('-');
     const title = id[1];
     const idx = parseInt(id[2]);
