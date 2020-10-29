@@ -78,7 +78,10 @@ class Main extends Base {
       high: this.toU(p.targetHighTempC),
       low: this.toU(p.targetLowTempC),
       current: this.toU(p.currentTemperature),
-      mode: p.pause > Date.now() ? 'Hold' : p.targetMode === 1 ? 'Heat' : p.targetMode === 2 ? 'Cool' : 'Off'
+      mode: p.pause > Date.now() ? 'Hold' :
+            this.smart.restoreAwaySchedule ? 'Auto Away' :
+            p.targetMode === 1 ? 'Heat' :
+            p.targetMode === 2 ? 'Cool' : 'Off'
     };
     const w = this.smart.weather && this.smart.weather.weather;
     if (w) {
@@ -126,20 +129,12 @@ class Main extends Base {
   }
 
   _smart2visual(schedule) {
+    console.log(schedule);
     function toT(wt) {
       const t = wt % (24 * 60);
       const h = Math.floor(t / 60);
       const m = `0${t % 60}`.substr(-2);
-      if (h === 0) {
-        return `12:${m}am`;
-      }
-      if (h < 12) {
-        return `${h}:${m}am`;
-      }
-      if (h == 12) {
-        return `12:${m}pm`;
-      }
-      return `${h}:${m}pm`;
+      return `${h}:${m}`;
     }
     const days = [
       { title: 'Sunday', sliders:[] },
@@ -159,8 +154,8 @@ class Main extends Base {
         tigger: sched.trigger && sched.trigger[0] && sched.trigger[0].room,
         rooms: Object.keys(sched.rooms).reduce((rooms, room) => {
           rooms[room] = {
-            always: !!(rooms[room].empty && rooms[room].occupied),
-            occupied: !rooms[room].empty
+            always: !!(sched.rooms[room].empty && sched.rooms[room].occupied),
+            occupied: !sched.rooms[room].empty
           }
           return rooms;
         }, {})
@@ -171,6 +166,7 @@ class Main extends Base {
         day.sliders.push({ low: this.toU(10), high: this.toU(25), time: '', trigger: null, rooms: {} });
       }
     });
+    console.log(JSON.stringify(days, null, 2));
     return days;
   }
 

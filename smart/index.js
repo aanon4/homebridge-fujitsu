@@ -7,6 +7,7 @@ const MODE_OFF = 0;
 const MODE_COOL = 2;
 const MODE_HEAT = 1;
 
+const AWAY_WAIT = 60; // 1 hour
 const AWAY_VALID = [
   [ 6 * 60, 21 * 60 ] // 6am - 9pm
 ];
@@ -22,7 +23,8 @@ class Smart {
     this.holdTime = 0;
     this.unit = 'c';
     this.autoAway = false;
-    this.away = false
+    this.away = null
+    this.restoreAwaySchedule = null;
     this.currentProgram = {
       targetMode: MODE_OFF,
       targetTemperature: null,
@@ -64,8 +66,13 @@ class Smart {
     const poll = () => {
       if (this.autoAway) {
         this._checkAway();
-        if (this.away && this.selectedSchedule !== 'away') {
+        if (this.away && Date.now() - away > (AWAY_WAIT * 60 * 1000) && this.selectedSchedule !== 'away') {
+          const selected = this.selectedSchedule;
           this.setScheduleTo('away');
+          this.restoreAwaySchedule = selected;
+        }
+        if (!this.away && this.selectedSchedule === 'away' && this.restoreAwaySchedule) {
+          this.setScheduleTo(this.restoreAwaySchedule);
         }
       }
       this._updateSensors().then(() => {
@@ -280,6 +287,7 @@ class Smart {
 
   setScheduleTo(name) {
     this.log.debug('setScheduleTo:', name);
+    this.restoreAwaySchedule = null;
     if (this.selectedSchedule !== name && name in this.schedules) {
       this.selectedSchedule = name;
       this.saveState();
