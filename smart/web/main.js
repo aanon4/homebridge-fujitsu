@@ -129,7 +129,6 @@ class Main extends Base {
   }
 
   _smart2visual(schedule) {
-    console.log(schedule);
     function toT(wt) {
       const t = wt % (24 * 60);
       const h = Math.floor(t / 60);
@@ -166,7 +165,6 @@ class Main extends Base {
         day.sliders.push({ low: this.toU(10), high: this.toU(25), time: '', trigger: null, rooms: {} });
       }
     });
-    console.log(JSON.stringify(days, null, 2));
     return days;
   }
 
