@@ -6,6 +6,7 @@ This started life as an extension to the current mini-split module but with fan 
 **Warning** this plugin this is currently experimental, use at your own risk! It will probably burn your house down.
 
 ![UI](./assets/ui.png)
+![Multiple Schedules](./assets/sched.png)
 
 ## Installation
 
