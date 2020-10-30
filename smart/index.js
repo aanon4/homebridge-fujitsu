@@ -106,6 +106,14 @@ class Smart {
     this.log.debug('_updateSensors:');
     try {
       await this.sensors.updateDevices(this.devices);
+      if (this.feelsLike) {
+        for (let name in this.devices) {
+          const device = this.devices[name];
+          if ('environ' in device) {
+            device.environ.feelslike = Feels.humidex(device.environ.temperature, device.environ.humidity);
+          }
+        }
+      }
       Bus.emit('smart.devices.update', this.devices);
     }
     catch (e) {
@@ -146,10 +154,7 @@ class Smart {
             weight = room.empty;
           }
           totalWeight += weight;
-          let tempC = device.environ.temperature;
-          if (this.feelsLike) {
-            tempC = Feels.humidex(tempC, device.environ.humidity);
-          }
+          const tempC = this.feelsLike ? device.environ.feelslike : device.environ.temperature;
           totalWeightedTemperature += tempC * weight;
           this.log.debug('_updateProgram:', name, tempC, 'C', weight);
         }

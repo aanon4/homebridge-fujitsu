@@ -79,7 +79,7 @@ class Main extends Base {
         title: name,
         environ: !!device.environ,
         motion: !!device.motion,
-        temperature: device.environ && this.toU(device.environ.temperature)
+        temperature: device.environ && this.toU('feelslike' in device.environ ? device.environ.feelslike : device.environ.temperature)
       });
     }
     const p = this.smart.currentProgram;

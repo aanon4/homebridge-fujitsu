@@ -13,9 +13,9 @@
       <div>{{title}}</div>
       <select name="{{title}}">
         <option value="">{{temperature}} &deg;{{../unit}}</option>
-        <option {{#if (lookup (lookup ../rooms title) 'always')}}selected{{/if}}>Always</option>
+        <option value="Always" {{#if (lookup (lookup ../rooms title) 'always')}}selected{{/if}}>{{temperature}} &deg;{{../unit}}: Always</option>
         {{#if motion}}
-        <option {{#if (lookup (lookup ../rooms title) 'occupied')}}selected{{/if}}>Occupied</option>
+        <option value="Occupied" {{#if (lookup (lookup ../rooms title) 'occupied')}}selected{{/if}}>{{temperature}} &deg;{{../unit}}: Occupied</option>
         {{/if}}
       </select>
     </div>
