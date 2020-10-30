@@ -103,7 +103,7 @@ body {
 .slide-container .title {
   width: 95px;
   line-height: 53px;
-  padding-left: 7px;
+  padding-left: 10px;
   border-right: solid 1px grey;
 }
 .slide-container .shed {

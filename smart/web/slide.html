@@ -1,5 +1,7 @@
 <div class="slide-container">
-  <div class="day title" draggable="true" ondragstart="daycopy('start',event)" ondragover="daycopy('over',event)" ondrop="daycopy('drop',event)">{{title}}</div>
+  <div class="title">
+    <div class="day" draggable="true" ondragstart="daycopy('start',event)" ondragover="daycopy('over',event)" ondrop="daycopy('drop',event)">{{title}}</div>
+  </div>
   <div class="shed"></div>
   <div class="slide">
     {{#each sliders}}
