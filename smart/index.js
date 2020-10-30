@@ -62,7 +62,7 @@ class Smart {
     else {
       this.loadState();
       this.web = require('./web/server');
-      this.web.start(this, config, this.hbapi, this.log);
+      this.web.start(this, config);
     }
 
     const poll = () => {
@@ -302,6 +302,42 @@ class Smart {
       Bus.emit('smart.schedule.update', this.selectedSchedule, this.schedules[this.selectedSchedule]);
       this._updateProgram();
     }
+  }
+
+  copyScheduleDay(from, to) {
+    this.log.debug('copyScheduleDay:', from, '->', to);
+    const map = [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ];
+    const fromtime = map.indexOf(from) * 24 * 60;
+    const totime = map.indexOf(to) * 24 * 60;
+    if (fromtime < 0 || totime < 0) {
+      return;
+    }
+    const fromtimeend = fromtime + 24 * 60;
+    const totimeend = totime + 24 * 60;
+    const schedule = this.schedules[this.selectedSchedule];
+    for (let i = schedule.length - 1; i >= 0; i--) {
+      const s = schedule[i];
+      if (s.weektime >= totime && s.weektime < totimeend) {
+        schedule.splice(i, 1);
+      }
+    }
+    for (let i = schedule.length - 1; i >= 0; i--) {
+      const s = schedule[i];
+      if (s.weektime >= fromtime && s.weektime < fromtimeend) {
+        const copy = {
+          weektime: s.weektime - fromtime + totime,
+          high: s.high,
+          low: s.low,
+          trigger: s.tigger ? [].concat(s.trigger) : null,
+          rooms: Object.keys(s.rooms).reduce((rooms, room) => {
+            rooms[room] = { occupied : s.rooms[room].occupied, empty: s.rooms[room].empty };
+            return rooms;
+          }, {})
+        }
+        schedule.push(copy);
+      }
+    }
+    this.setSchedule(this.selectedSchedule, schedule);
   }
 
   buildSchedule(schedule) {

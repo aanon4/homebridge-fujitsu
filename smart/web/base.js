@@ -2,8 +2,8 @@ const Template = require('./template');
 
 class Base {
 
-  constructor(name, log) {
-    this.log = log;
+  constructor(smart, name) {
+    this.log = smart.log;
     this._name = name;
     this._websocket = null;
     this._pending = {};
