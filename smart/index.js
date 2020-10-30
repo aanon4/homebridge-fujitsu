@@ -110,7 +110,7 @@ class Smart {
         for (let name in this.devices) {
           const device = this.devices[name];
           if ('environ' in device) {
-            device.environ.feelslike = Feels.humidex(device.environ.temperature, device.environ.humidity);
+            device.environ.feelslike = device.environ.temperature <= 20 ? device.environ.temperature : Feels.heatIndex(device.environ.temperature, device.environ.humidity);
           }
         }
       }
