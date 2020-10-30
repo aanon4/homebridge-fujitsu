@@ -4,13 +4,13 @@ const Bus = require('../bus');
 
 class Main extends Base {
 
-  constructor(smart, hap, log) {
-    super('main', log);
+  constructor(smart) {
+    super(smart, 'main');
+    this.smart = smart;
+
     this._programUpdate = this._programUpdate.bind(this);
     this._deviceUpdate = this._deviceUpdate.bind(this);
     this._weatherUpdate = this._weatherUpdate.bind(this);
-
-    this.smart = smart;
   }
 
   main(ctx) {
@@ -143,10 +143,15 @@ class Main extends Base {
     }
   }
 
+  async 'sliders.copy' (msg) {
+    this.state.selected = null;
+    this.smart.copyScheduleDay(msg.from, msg.to);
+  }
+
   _smart2visual(schedule) {
     function toT(wt) {
       const t = wt % (24 * 60);
-      const h = Math.floor(t / 60);
+      const h = `0${Math.floor(t / 60)}`.substr(-2);
       const m = `0${t % 60}`.substr(-2);
       return `${h}:${m}`;
     }

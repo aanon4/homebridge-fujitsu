@@ -152,8 +152,6 @@ body {
 .slider-options .room div {
   display: inline-block;
   width: 110px;
-  height: 16px;
-  overflow: hidden;
 }
 .slider-options label {
   display: inline-block;
@@ -176,7 +174,7 @@ body {
   border-radius: 5px;
   color: white;
   font-size: 12px;
-  min-width: 110px;
+  width: 110px;
 }
 .slider-options select option {
   background-color: grey;

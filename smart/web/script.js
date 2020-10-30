@@ -256,3 +256,28 @@ function slider(config) {
     onClickOutside: sliderOnClickOutside
   });
 }
+
+function daycopy(type, event) {
+  switch (type) {
+    case 'start':
+      if (event.target.classList.contains('day')) {
+        event.dataTransfer.setData('application/x-day', event.target.innerText);
+        event.dataTransfer.effectAllowed = 'copy';
+      }
+      break;
+    case 'over':
+      if (event.target.classList.contains('day') && event.dataTransfer.types.includes('application/x-day')) {
+        event.preventDefault();
+      }
+      break;
+    case 'drop':
+      const from = event.dataTransfer.getData('application/x-day');
+      const to = event.target.innerText;
+      if (from !== to) {
+        send('sliders.copy', { from: from, to: to });
+      }
+      break;
+    default:
+      break;
+  }
+}
