@@ -79,6 +79,10 @@ This started life as an extension to the current mini-split module but with fan 
 | `smart.schedule.rooms` | An object of rooms, where the key is the room name. The room name should match the beginning name of the sensor `(e.g. Dining Room` has sensors `Dining Room Temperature` and `Dining Room Movement)` |
 | `smart.schedule.rooms.ROOM.occupied` | A weight from `0-100` specifying how important this schedule is, higher being more important. This weight is for when the room is occupied (or always if the room has no motion sensor) |
 | `smart.schedule.rooms.ROOM.empty` _(optional)_ | A weight for when the room has been empty for 30 minutes or more |
+| `smart.away` _(optional)_ | Enable auto-away schedule. If no movement is detected then the away schedule can be automatically started |
+| `smart.away.from` _(optional)_ | Start time for when auto-away can be activated (Default: 6am) |
+| `smart.away.to` _(optional)_ | End time for when auto-away can be activated (Default: 9pm) |
+| `smart.away.wait` _(optional)_ | How long since movement was detected before the away schedule is activated (Default: 60 minutes) |
 | `smart.portnr` _(optional)_ | Port number for Web UI (Default: 8080) |
 | `smart.weather` _(optional)_ | If provided, allows the Web UI to display the current weather. Weather information is read from the OpenWeatherMap API. Provide one of `city`, `latLong`, `cityId` or `zipcode` |
 | `smart.weather.key` | OpenWeatherMap API key |

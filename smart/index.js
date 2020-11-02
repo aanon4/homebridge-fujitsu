@@ -8,11 +8,6 @@ const MODE_COOL = 2;
 const MODE_HEAT = 1;
 const MODE_AUTO = 3;
 
-const AWAY_WAIT = 60; // 1 hour
-const AWAY_VALID = [
-  [ 6 * 60, 21 * 60 ] // 6am - 9pm
-];
-
 class Smart {
 
   constructor() {
@@ -23,7 +18,7 @@ class Smart {
     this.feelsLike = false;
     this.holdTime = 0;
     this.unit = 'c';
-    this.autoAway = false;
+    this.awaySchedule = null;
     this.away = null
     this.restoreAwaySchedule = null;
     this.currentProgram = {
@@ -47,7 +42,6 @@ class Smart {
     this.holdTime = (config.hold || 60) * 60 * 1000;
     this.unit = (config.unit || 'c').toLowerCase();
     this.currentProgramUntil = 0;
-    this.autoAway = config.autoaway || false;
 
     if (config.miio) {
       const miio = require('./sensors/miio');
@@ -65,10 +59,17 @@ class Smart {
       this.web.start(this, config);
     }
 
+    if (config.away) {
+      this.awaySchedule = {
+        valid: [ this._parseTime(config.away.from) || 6 * 60, this._parseTime(config.away.to) || 21 * 60 ],
+        wait: (config.away.wait || 60) * 60 * 1000
+      };
+    }
+
     const poll = () => {
-      if (this.autoAway) {
+      if (this.awaySchedule) {
         this._checkAway();
-        if (this.away && Date.now() - away > (AWAY_WAIT * 60 * 1000) && this.selectedSchedule !== 'away') {
+        if (this.away && Date.now() - away > this.awaySchedule.wait && this.selectedSchedule !== 'away') {
           const selected = this.selectedSchedule;
           this.setScheduleTo('away');
           this.restoreAwaySchedule = selected;
@@ -273,7 +274,7 @@ class Smart {
     else if (!this.away) {
       const now = new Date();
       const daytime = now.getHours() * 60 + now.getMinutes();
-      if (AWAY_VALID.find(period => period[0] <= daytime && period[1] >= daytime)) {
+      if (this.awaySchedule.valid.find(period => period[0] <= daytime && period[1] >= daytime)) {
         this.away = Date.now();
       }
     }
@@ -340,19 +341,19 @@ class Smart {
     this.setSchedule(this.selectedSchedule, schedule);
   }
 
+  // Format: eg. 12:00am, 12:00pm, 1:10am, 2:05p
+  _parseTime(time) {
+    const t = /^(\d+):(\d+)([ap])m?$/.exec(time);
+    if (t) {
+      return parseInt(t[1]) * 60 + parseInt(t[2]) + (t[3] === 'p' ? 12 * 60 : 0) - (t[1] === '12' ? 12 * 60 : 0);
+    }
+    else {
+      return undefined;
+    }
+  }
+
   buildSchedule(schedule) {
     this.log.debug('buildSchedule:', schedule);
-
-    // Format: eg. 12:00am, 12:00pm, 1:10am, 2:05p
-    function parseTime(time) {
-      const t = /^(\d+):(\d+)([ap])m?$/.exec(time);
-      if (t) {
-        return parseInt(t[1]) * 60 + parseInt(t[2]) + (t[3] === 'p' ? 12 * 60 : 0) - (t[1] === '12' ? 12 * 60 : 0);
-      }
-      else {
-        return undefined;
-      }
-    }
 
     // Format: eg. 'Mon', 'Mon-Wed', 'Fri-Mon', 'Any'
     const map = [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ];
@@ -386,8 +387,8 @@ class Smart {
 
     const computed = [];
     (schedule || []).forEach(sched => {
-      const time = parseTime(sched.time);
-      const days = parseDayOfWeek(sched.day);
+      const time = this._parseTime(sched.time);
+      const days = this._parseDayOfWeek(sched.day);
       const low = toC(sched.low);
       const high = toC(sched.high);
       if (time !== undefined && days !== undefined) {
