@@ -151,7 +151,7 @@ class Smart {
         const device = this.devices[name];
         if (device.environ && device.environ.online) {
           let weight = room.occupied || 0;
-          if (device.motion && device.motion.online && !device.motion.motion1800 && 'empty' in room) {
+          if (device.motion && device.motion.online && !device.motion.motion && 'empty' in room) {
             weight = room.empty;
           }
           totalWeight += weight;
@@ -237,8 +237,13 @@ class Smart {
             // Check to see if new trigger has happened
             sched.trigger.forEach(trigger => {
               const device = this.devices[trigger.room];
-              if (device && device.motion && device.motion.online && device.motion.motion1800) {
-                sched._triggered = now;
+              if (device) {
+                if (device.motion && device.motion.online && device.motion.motion) {
+                  sched._triggered = now;
+                }
+                if (device.magnet && device.magnet.online && (device.magnet.open || device.magnet.close)) {
+                  sched._triggered = now;
+                }
               }
             });
           }
@@ -262,9 +267,12 @@ class Smart {
     let motion = false;
     for (let name in this.devices) {
       const device = this.devices[name];
-      if (device.motion && device.motion.online && device.motion.motion1800) {
+      if (device.motion && device.motion.online && device.motion.motion) {
         motion = true;
         break;
+      }
+      if (device.magnet && device.magnet.online && (device.magnet.open || device.magnet.close)) {
+        motion = true;
       }
     }
 

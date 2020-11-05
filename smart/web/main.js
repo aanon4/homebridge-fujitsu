@@ -79,6 +79,7 @@ class Main extends Base {
         title: name,
         environ: !!device.environ,
         motion: !!device.motion,
+        magnet: !!device.magnet,
         temperature: device.environ && this.toU('feelslike' in device.environ ? device.environ.feelslike : device.environ.temperature)
       });
     }

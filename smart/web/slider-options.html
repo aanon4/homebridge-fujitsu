@@ -27,7 +27,7 @@
     <select>
       <option></option>
       {{#each availablerooms}}
-      {{#if motion}}
+      {{#if (or motion magnet)}}
       <option {{#if (eq ../trigger title)}}selected{{/if}}>{{title}}</option>
       {{/if}}
       {{/each}}
