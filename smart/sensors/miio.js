@@ -18,7 +18,7 @@ Miio.prototype.login = async function(config, log) {
 Miio.prototype.updateDevices = async function(devices) {
   this.log.debug('updateDevices:');
   function extractName(name) {
-    const post = [ ' Temp', ' Move', ' Motion' ];
+    const post = [ ' Temp', ' Move', ' Motion', ' Door', ' Window', ' Contact' ];
     for (let i = 0; i < post.length; i++) {
       let idx = name.indexOf(post[i]);
       if (idx !== -1) {
@@ -47,9 +47,10 @@ Miio.prototype.updateDevices = async function(devices) {
         };
         break;
       case 'lumi.sensor_magnet.v2':
+      case 'lumi.sensor_magnet.aq2':
         const now = Math.floor(Date.now() / 1000);
-        const lastopen = JSON.parse(dev.event['event.open']).timestamp - now;
-        const lastclose = JSON.parse(dev.event['event.close']).timestamp - now;
+        const lastopen = now - JSON.parse(dev.event['event.open']).timestamp;
+        const lastclose = now - JSON.parse(dev.event['event.close']).timestamp;
         (devices[name] || (devices[name] = {})).magnet = {
           online: dev.isOnline,
           open: lastopen < 1800,
