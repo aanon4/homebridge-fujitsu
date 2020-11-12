@@ -124,6 +124,7 @@ class Main extends Base {
         slider.low = msg.low;
         slider.time = msg.time;
         slider.trigger = msg.trigger;
+        slider.fan = msg.fan;
         slider.rooms = msg.rooms;
         this.smart.setSchedule(this.state.selected, this._visual2smart(this.state.schedule));
       }
@@ -172,6 +173,7 @@ class Main extends Base {
         low: this.toU(sched.low),
         high: this.toU(sched.high),
         tigger: sched.trigger && sched.trigger[0] && sched.trigger[0].room,
+        fan: sched.fan,
         rooms: Object.keys(sched.rooms).reduce((rooms, room) => {
           rooms[room] = {
             always: !!(sched.rooms[room].empty && sched.rooms[room].occupied),
@@ -183,7 +185,7 @@ class Main extends Base {
     });
     days.forEach(day => {
       while (day.sliders.length < 8) {
-        day.sliders.push({ low: this.toU(10), high: this.toU(25), time: '', trigger: null, rooms: {} });
+        day.sliders.push({ low: this.toU(10), high: this.toU(25), time: '', trigger: null, fan: 'Auto', rooms: {} });
       }
     });
     return days;
@@ -205,6 +207,7 @@ class Main extends Base {
             high: this.toC(slider.high),
             low: this.toC(slider.low),
             trigger: slider.trigger ? [{ room: slider.trigger }] : null,
+            fan: slider.fan,
             rooms: Object.keys(slider.rooms).reduce((rooms, room) => {
               rooms[room] = {
                 occupied: slider.rooms[room].always || slider.rooms[room].occupied ? 100 : 0,

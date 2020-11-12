@@ -338,6 +338,7 @@ class Smart {
           high: s.high,
           low: s.low,
           trigger: s.tigger ? [].concat(s.trigger) : null,
+          fan: s.fan,
           rooms: Object.keys(s.rooms).reduce((rooms, room) => {
             rooms[room] = { occupied : s.rooms[room].occupied, empty: s.rooms[room].empty };
             return rooms;
@@ -406,6 +407,7 @@ class Smart {
             low: low,
             high: high,
             trigger: sched.tigger,
+            fan: sched.fan || 'Auto',
             rooms: sched.rooms
           });
         });

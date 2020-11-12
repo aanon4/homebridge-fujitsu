@@ -180,7 +180,8 @@ body {
   background-color: grey;
   color: white;
 }
-.slider-options .trigger {
+.slider-options .trigger,
+.slider-options .fan {
   text-align: right;
   padding-right: 8px;
 }

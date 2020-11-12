@@ -104,6 +104,7 @@ function sliderSendUpdate(config) {
     low: parseFloat(config.low),
     time: config.time,
     trigger: config.trigger,
+    fan: config.fan,
     rooms: config.rooms
   }, 0.5);
 }
@@ -162,6 +163,7 @@ function sliderOnChange(e) {
   config.low = slider.querySelector('.slider-options .low').value;
   const trigger = slider.querySelector('.slider-options .trigger select').value;
   config.trigger = !trigger ? null : trigger;
+  config.fan = slider.querySelector('.slider-options .fan select').value;
   config.rooms = {};
   slider.querySelectorAll('.slider-options .room select').forEach(room => {
     switch (room.value) {
