@@ -155,7 +155,13 @@ class Thermostat {
         const savedPaused = ctx.smart.currentProgram.pauseUntil;
         ctx.service.setCharacteristic(Characteristic.TargetHeatingCoolingState, ctx.smart.currentProgram.targetMode);
         ctx.service.setCharacteristic(Characteristic.TargetTemperature, ctx.smart.currentProgram.targetTemperatureC);
-        ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_AUTO);
+        if (ctx.smart.currentProgram.fanMode === HK_FAN_AUTO) {
+          ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_AUTO);
+        }
+        else {
+          ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_MANUAL);
+          ctx.fan.setCharacteristic(Characteristic.RotationSpeed, HK_FAN_QUIET);
+        }
         ctx.smart.currentProgram.pauseUntil = savedPaused;
       }
 
@@ -221,7 +227,7 @@ class Thermostat {
     else if (val <= HK_FAN_LOW) {
       fanSpeed = FJ_FAN_LOW;
     }
-    else if (val <= HK_FAN_MANUAL) {
+    else if (val <= HK_FAN_MEDIUM) {
       fanSpeed = FJ_FAN_MEDIUM;
     }
     else {

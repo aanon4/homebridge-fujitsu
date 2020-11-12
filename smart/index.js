@@ -8,6 +8,9 @@ const MODE_COOL = 2;
 const MODE_HEAT = 1;
 const MODE_AUTO = 3;
 
+const FAN_AUTO = 1;
+const FAN_MANUAL = 0;
+
 class Smart {
 
   constructor() {
@@ -29,6 +32,7 @@ class Smart {
       programHighTempC: null,
       adjustedHighTempC: null,
       adjustedLowTempC: null,
+      fanMode: FAN_AUTO,
       pauseUntil: 0
     };
   }
@@ -194,6 +198,8 @@ class Smart {
     else {
       // Just right - leave the current mode and target 'as is'.
     }
+
+    this.currentProgram.fanMode = program.fan === 'On' ? FAN_MANUAL : FAN_AUTO;
 
     Bus.emit('smart.program.update', this.currentProgram);
 
