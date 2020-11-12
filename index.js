@@ -160,7 +160,7 @@ class Thermostat {
         }
         else {
           ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_MANUAL);
-          ctx.fan.setCharacteristic(Characteristic.RotationSpeed, HK_FAN_QUIET);
+          ctx.fan.setCharacteristic(Characteristic.RotationSpeed, ctx.smart.currentProgram.fanSpeed);
         }
         ctx.smart.currentProgram.pauseUntil = savedPaused;
       }

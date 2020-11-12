@@ -185,7 +185,7 @@ class Main extends Base {
     });
     days.forEach(day => {
       while (day.sliders.length < 8) {
-        day.sliders.push({ low: this.toU(10), high: this.toU(25), time: '', trigger: null, fan: 'Auto', rooms: {} });
+        day.sliders.push({ low: this.toU(10), high: this.toU(25), time: '', trigger: null, fan: 'auto', rooms: {} });
       }
     });
     return days;

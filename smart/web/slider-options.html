@@ -25,8 +25,11 @@
   <div class="box-label">Fan</div>
   <div class="box fan">
     <select>
-      <option {{#if (eq fan 'Auto')}}selected{{/if}}>Auto</option>
-      <option {{#if (eq fan 'Always')}}selected{{/if}}>Always</option>
+      <option value="auto" {{#if (eq fan 'auto')}}selected{{/if}}>Auto</option>
+      <option value="10" {{#if (eq fan 10)}}selected{{/if}}>Quiet</option>
+      <option value="30" {{#if (eq fan 30)}}selected{{/if}}>Low</option>
+      <option value="60" {{#if (eq fan 60)}}selected{{/if}}>Medium</option>
+      <option value="100" {{#if (eq fan 100)}}selected{{/if}}>High</option>
     </select>
   </div>
   <div class="box-label">Trigger</div>
