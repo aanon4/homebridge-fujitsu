@@ -199,7 +199,8 @@ class Smart {
       // Just right - leave the current mode and target 'as is'.
     }
 
-    this.currentProgram.fanMode = program.fan === 'On' ? FAN_MANUAL : FAN_AUTO;
+    // Fan mode
+    this.currentProgram.fanMode = program.fan === 'Always' ? FAN_MANUAL : FAN_AUTO;
 
     Bus.emit('smart.program.update', this.currentProgram);
 
