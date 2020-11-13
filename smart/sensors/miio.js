@@ -30,33 +30,38 @@ Miio.prototype.updateDevices = async function(devices) {
   const miidevices = await Mihome.miCloudProtocol.getDevices(null, { country: this.region });
   miidevices.forEach(dev => {
     this.log.debug('updateDevices: device', dev);
-    const name = extractName(dev.name);
-    switch (dev.model) {
-      case 'lumi.weather.v1':
-        (devices[name] || (devices[name] = {})).environ = {
-          online: dev.isOnline,
-          temperature: dev.prop.temperature / 100,
-          humidity: dev.prop.humidity / 100,
-          pressure: dev.prop.pressure / 100
-        };
-        break;
-      case 'lumi.sensor_motion.aq2':
-        (devices[name] || (devices[name] = {})).motion = {
-          online: dev.isOnline,
-          motion: dev.event['prop.no_motion_1800'] != '1'
-        };
-        break;
-      case 'lumi.sensor_magnet.v2':
-      case 'lumi.sensor_magnet.aq2':
-        const now = Math.floor(Date.now() / 1000);
-        const lastopen = now - JSON.parse(dev.event['event.open'] || '{"timestamp":0}').timestamp;
-        const lastclose = now - JSON.parse(dev.event['event.close'] || '{"timestamp":0}').timestamp;
-        (devices[name] || (devices[name] = {})).magnet = {
-          online: dev.isOnline,
-          open: lastopen < 1800,
-          close: lastclose < 1800
-        };
-        break;
+    try {
+      const name = extractName(dev.name);
+      switch (dev.model) {
+        case 'lumi.weather.v1':
+          (devices[name] || (devices[name] = {})).environ = {
+            online: dev.isOnline,
+            temperature: dev.prop.temperature / 100,
+            humidity: dev.prop.humidity / 100,
+            pressure: dev.prop.pressure / 100
+          };
+          break;
+        case 'lumi.sensor_motion.aq2':
+          (devices[name] || (devices[name] = {})).motion = {
+            online: dev.isOnline,
+            motion: dev.event['prop.no_motion_1800'] != '1'
+          };
+          break;
+        case 'lumi.sensor_magnet.v2':
+        case 'lumi.sensor_magnet.aq2':
+          const now = Math.floor(Date.now() / 1000);
+          const lastopen = now - JSON.parse(dev.event['event.open']).timestamp;
+          const lastclose = now - JSON.parse(dev.event['event.close']).timestamp;
+          (devices[name] || (devices[name] = {})).magnet = {
+            online: dev.isOnline,
+            open: lastopen < 1800,
+            close: lastclose < 1800
+          };
+          break;
+      }
+    }
+    catch (e) {
+      this.log.debug('updateDevices: exception:', e);
     }
   });
 
