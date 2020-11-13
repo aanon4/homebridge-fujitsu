@@ -1,8 +1,13 @@
 <div class="slider-options">
   <div class="box-label">Program</div>
   <div class="box">
-    <div><label>High</label><input class="high" type="number" min="0" max="99" value="{{high}}">&deg;{{unit}}</div>
-    <div><label>Low</label><input class="low" type="number" min="0" max="99" value="{{low}}">&deg;{{unit}}</div>
+    {{#if (eq unit 'F')}}
+    <div><label>High</label><input class="high" type="number" min="45" max="85" value="{{high}}">&deg;{{unit}}</div>
+    <div><label>Low</label><input class="low" type="number" min="45" max="85" value="{{low}}">&deg;{{unit}}</div>
+    {{else}}
+    <div><label>High</label><input class="high" type="number" min="0" max="35" step="0.5" value="{{high}}">&deg;{{unit}}</div>
+    <div><label>Low</label><input class="low" type="number" min="0" max="35" step="0.5" value="{{low}}">&deg;{{unit}}</div>
+    {{/if}}
     <div><label>Time</label><input title="time" class="time" type="time" value="{{time}}"></div>
   </div>
   <div class="box-label">Temperatures</div>
