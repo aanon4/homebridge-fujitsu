@@ -49,8 +49,8 @@ Miio.prototype.updateDevices = async function(devices) {
       case 'lumi.sensor_magnet.v2':
       case 'lumi.sensor_magnet.aq2':
         const now = Math.floor(Date.now() / 1000);
-        const lastopen = now - JSON.parse(dev.event['event.open']).timestamp;
-        const lastclose = now - JSON.parse(dev.event['event.close']).timestamp;
+        const lastopen = now - JSON.parse(dev.event['event.open'] || '{"timestamp":0}').timestamp;
+        const lastclose = now - JSON.parse(dev.event['event.close'] || '{"timestamp":0}').timestamp;
         (devices[name] || (devices[name] = {})).magnet = {
           online: dev.isOnline,
           open: lastopen < 1800,
