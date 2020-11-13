@@ -8,10 +8,6 @@ const MODE_COOL = 2;
 const MODE_HEAT = 1;
 const MODE_AUTO = 3;
 
-const FAN_AUTO = 1;
-const FAN_MANUAL = 0;
-const FAN_SPEED_DEFAULT = 10;
-
 class Smart {
 
   constructor() {
@@ -33,8 +29,7 @@ class Smart {
       programHighTempC: null,
       adjustedHighTempC: null,
       adjustedLowTempC: null,
-      fanMode: FAN_AUTO,
-      fanSpeed: FAN_SPEED_DEFAULT,
+      fanSpeed: 'auto',
       pauseUntil: 0
     };
   }
@@ -48,7 +43,6 @@ class Smart {
     this.holdTime = (config.hold || 60) * 60 * 1000;
     this.unit = (config.unit || 'c').toLowerCase();
     this.currentProgramUntil = 0;
-    this.fanSpeed = config.fanSpeed || FAN_SPEED_DEFAULT;
 
     if (config.miio) {
       const miio = require('./sensors/miio');
@@ -202,9 +196,8 @@ class Smart {
       // Just right - leave the current mode and target 'as is'.
     }
 
-    // Fan mode
-    this.currentProgram.fanMode = program.fan === 'auto' ? FAN_AUTO : FAN_MANUAL;
-    this.currentProgram.fanSpeed = this.fanSpeed;
+    // Fan speed
+    this.currentProgram.fanSpeed = program.fan === 'auto' ? 'auto' : parseInt(program.fan);
 
     Bus.emit('smart.program.update', this.currentProgram);
 

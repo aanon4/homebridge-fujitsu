@@ -155,7 +155,7 @@ class Thermostat {
         const savedPaused = ctx.smart.currentProgram.pauseUntil;
         ctx.service.setCharacteristic(Characteristic.TargetHeatingCoolingState, ctx.smart.currentProgram.targetMode);
         ctx.service.setCharacteristic(Characteristic.TargetTemperature, ctx.smart.currentProgram.targetTemperatureC);
-        if (ctx.smart.currentProgram.fanMode === HK_FAN_AUTO) {
+        if (ctx.smart.currentProgram.fanSpeed === 'auto') {
           ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_AUTO);
         }
         else {
