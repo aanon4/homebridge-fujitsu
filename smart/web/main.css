@@ -155,10 +155,10 @@ body {
 }
 .slider-options label {
   display: inline-block;
-  width: 80px;
+  width: 110px;
 }
 .slider-options input {
-  width: 125px;
+  width: 120px;
   background-color: transparent;
   color: white;
   border-width: 0;

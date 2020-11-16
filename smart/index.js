@@ -139,7 +139,7 @@ class Smart {
     // These values are weighted, based on a schedule and/or motion associated
     // with the sensors.
     const program = this._getSchedule();
-    if (program && refdevice) {
+    if (refdevice && program && (program.low !== null || program.high !== null)) {
 
       adjustedLowTempC = program.low;
       adjustedHighTempC = program.high;
@@ -165,8 +165,12 @@ class Smart {
       if (totalWeight !== 0) {
         this.currentProgram.currentTemperatureC = totalWeightedTemperature / totalWeight;
         const currentTempDiffC = this.currentProgram.currentTemperatureC - currentReferenceTemperature;
-        adjustedLowTempC -= currentTempDiffC;
-        adjustedHighTempC -= currentTempDiffC;
+        if (adjustedLowTempC !== null) {
+          adjustedLowTempC -= currentTempDiffC;
+        }
+        if (adjustedHighTempC !== null) {
+          adjustedHighTempC -= currentTempDiffC;
+        }
       }
     }
 
@@ -177,17 +181,17 @@ class Smart {
       this.currentProgram.programHighTempC = program.high;
     }
 
-    if (adjustedLowTempC === null || adjustedHighTempC === null) {
+    if (adjustedLowTempC === null && adjustedHighTempC === null) {
       // No active program, so turn it off
       this.currentProgram.targetMode = MODE_OFF;
       this.currentProgram.targetTemperatureC = null;
     }
-    else if (this.currentProgram.currentTemperatureC < adjustedLowTempC) {
+    else if (adjustedLowTempC !== null && this.currentProgram.currentTemperatureC < adjustedLowTempC) {
       // Too cold - heat
       this.currentProgram.targetMode = (adjustedLowTempC === adjustedHighTempC ? MODE_AUTO : MODE_HEAT);
       this.currentProgram.targetTemperatureC = adjustedLowTempC;
     }
-    else if (this.currentProgram.currentTemperatureC > adjustedHighTempC) {
+    else if (adjustedHighTempC !== null && this.currentProgram.currentTemperatureC > adjustedHighTempC) {
       // Too hot - cool
       this.currentProgram.targetMode = (adjustedLowTempC === adjustedHighTempC ? MODE_AUTO : MODE_COOL);
       this.currentProgram.targetTemperatureC = adjustedHighTempC;

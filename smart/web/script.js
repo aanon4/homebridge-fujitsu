@@ -146,8 +146,8 @@ function sliderDrag(e) {
         time.polyfill.update();
       }
     }
-    slider.querySelector('.temp.top').innerText = config.high;
-    slider.querySelector('.temp.bottom').innerText = config.low;
+    slider.querySelector('.temp.top').innerText = config.high != 0 ? config.high : '-';
+    slider.querySelector('.temp.bottom').innerText = config.low != 0 ? config.low : '-';
     slider.style.left = `${100 * mins / (24 * 60)}%`;
     slider.firstElementChild._tippy.show();
   }
@@ -177,8 +177,8 @@ function sliderOnChange(e) {
         break;
     }
   });
-  slider.querySelector('.temp.top').innerText = config.high;
-  slider.querySelector('.temp.bottom').innerText = config.low;
+  slider.querySelector('.temp.top').innerText = config.high != 0 ? config.high : '-';
+  slider.querySelector('.temp.bottom').innerText = config.low != 0 ? config.low : '-';
   sliderSendUpdate(config);
 }
 function sliderOnCreate(instance) {
@@ -228,8 +228,8 @@ function sliderOnHide(instance) {
     config.time = itime.dataset.value || itime.value;
     config.high = slider.querySelector('.slider-options .high').value;
     config.low = slider.querySelector('.slider-options .low').value;
-    slider.querySelector('.temp.top').innerText = config.high;
-    slider.querySelector('.temp.bottom').innerText = config.low;
+    slider.querySelector('.temp.top').innerText = config.high != 0 ? config.high : '-';
+    slider.querySelector('.temp.bottom').innerText = config.low != 0 ? config.low : '-';
     const time = config.time.split(':');
     const mins = parseInt(time[0], 10) * 60 + parseInt(time[1], 10);
     slider.style.left = `${100 * mins / (24 * 60)}%`;

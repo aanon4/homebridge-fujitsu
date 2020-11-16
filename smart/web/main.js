@@ -204,8 +204,8 @@ class Main extends Base {
           const weektime = (day * 24 + hour) * 60 + min;
           sched.push({
             weektime: weektime,
-            high: this.toC(slider.high),
-            low: this.toC(slider.low),
+            high: slider.high == 0 ? null : this.toC(slider.high),
+            low: slider.low == 0 ? null : this.toC(slider.low),
             trigger: slider.trigger ? [{ room: slider.trigger }] : null,
             fan: slider.fan,
             rooms: Object.keys(slider.rooms).reduce((rooms, room) => {

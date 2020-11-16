@@ -2,8 +2,24 @@
   <div class="box-label">Program</div>
   <div class="box">
     {{#if (eq unit 'F')}}
-    <div><label>High</label><input class="high" type="number" min="45" max="85" value="{{high}}">&deg;{{unit}}</div>
-    <div><label>Low</label><input class="low" type="number" min="45" max="85" value="{{low}}">&deg;{{unit}}</div>
+    <div>
+      <label>High</label>
+      <select class="high">
+        <option value="0">-</option>
+        {{#each (array 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85)}}
+        <option value="{{this}}" {{#if (eq this ../high)}}selected{{/if}}>{{this}} &deg;{{../unit}}</option>
+        {{/each}}
+      </select>
+    </div>
+    <div>
+      <label>Low</label>
+      <select class="low">
+        <option value="0">-</option>
+        {{#each (array 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85)}}
+        <option value="{{this}}" {{#if (eq this ../low)}}selected{{/if}}>{{this}} &deg;{{../unit}}</option>
+        {{/each}}
+      </select>
+    </div>
     {{else}}
     <div><label>High</label><input class="high" type="number" min="0" max="35" step="0.5" value="{{high}}">&deg;{{unit}}</div>
     <div><label>Low</label><input class="low" type="number" min="0" max="35" step="0.5" value="{{low}}">&deg;{{unit}}</div>
