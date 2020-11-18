@@ -106,6 +106,9 @@ class Smart {
 
   async _updateSensors() {
     this.log.debug('_updateSensors:');
+    if (!this.sensors) {
+      return;
+    }
     try {
       await this.sensors.updateDevices(this.devices);
       if (this.feelsLike) {
