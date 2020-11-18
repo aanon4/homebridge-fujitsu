@@ -73,7 +73,6 @@ function set_region(region) {
   }
   else {
     //use the defaults
-
   }
 
 }
@@ -116,15 +115,14 @@ var fglair = {
     return true;
   },
 
-  getDevices: function (token, callback) {
+  getDevices: function (callback) {
     let data = '';
     let opt = read_devices_options(access_token)
     let req2 = https.request(opt, (res) => {
       log.debug(`statusCode: ${res.statusCode}`);
       res.on('data', (d) => {
         data += d;
-
-      })
+      });
       res.on('end', () => {
         if (res.statusCode == 200) {
           let data_json = JSON.parse(data);
@@ -206,7 +204,7 @@ var fglair = {
   getAuth: function (user, password, callback) {
     username = user;
     user_pwd = password;
-    if (access_token == '') {
+    if (!access_token) {
       //var body = `{\r\n    \"user\": {\r\n        \"email\": \"${user}\",\r\n        \"application\":{\r\n            \"app_id\": \"CJIOSP-id\",\r\n            \"app_secret\": \"CJIOSP-Vb8MQL_lFiYQ7DKjN0eCFXznKZE\"\r\n        },\r\n        \"password\": \"${password}\"\r\n    }\r\n}`;
       var body = `{\"user\": {\"email\": \"${user}\", \"application\":{\"app_id\": \"${appID.app_id}\",\"app_secret\": \"${appID.app_secret}\"},\"password\": \"${password}\"}}`;
       const req = https.request(options_auth, (res) => {
@@ -236,7 +234,7 @@ var fglair = {
   },
 
   setLog: function (logfile) {
-    log = logfile;
+    //log = logfile;
   },
 
   setToken: function (token) {
