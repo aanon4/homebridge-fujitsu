@@ -70,10 +70,12 @@ class Base {
 
   send(cmd, value) {
     try {
-      this._websocket.send(JSON.stringify({
-        cmd: cmd,
-        value: value
-      }));
+      if (this._websocket) {
+        this._websocket.send(JSON.stringify({
+          cmd: cmd,
+          value: value
+        }));
+      }
     }
     catch (e) {
       this.log.error(e);
