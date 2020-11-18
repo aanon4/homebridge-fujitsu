@@ -74,11 +74,15 @@ class Thermostat {
     this.api.setToken(this.token);
     this.api.setRegion(this.region);
 
+    console.log('calling getAuth', this.userName, this.password);
     this.api.getAuth(this.userName, this.password, (err, token) => {
+      console.log(err, token);
       this.token = token;
-      this.api.getDevices(token, (err, data) => {
+      this.api.setToken(this.token);
+      this.api.getDevices((err, data) => {
         if (err) {
           //TODO:  Do something...
+          console.log(err, data);
         }
         else {
           this.serial = data[0]; //Only one thermostat is supported
