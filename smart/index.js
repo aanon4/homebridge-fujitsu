@@ -179,6 +179,9 @@ class Smart {
     if (program) {
       this.currentProgram.programLowTempC = program.low;
       this.currentProgram.programHighTempC = program.high;
+
+      // Fan speed
+      this.currentProgram.fanSpeed = program.fan === 'auto' ? 'auto' : parseInt(program.fan);
     }
 
     if (adjustedLowTempC === null && adjustedHighTempC === null) {
@@ -199,9 +202,6 @@ class Smart {
     else {
       // Just right - leave the current mode and target 'as is'.
     }
-
-    // Fan speed
-    this.currentProgram.fanSpeed = program.fan === 'auto' ? 'auto' : parseInt(program.fan);
 
     Bus.emit('smart.program.update', this.currentProgram);
 
