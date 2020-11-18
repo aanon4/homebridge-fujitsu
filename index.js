@@ -178,7 +178,7 @@ class Thermostat {
         ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, ctx.smart.currentProgram.currentTemperatureC);
       }
 
-      ctx.log("[" + ctx.serial + "] temp: " + ctx.targetTemperatureC + "C, mode: " + ctx.targetHeatingCoolingState);
+      ctx.log("[" + ctx.serial + "] temp: " + remote.targetTemperatureC + "C, mode: " + remote.targetHeatingCoolingState);
     });
   }
 
@@ -187,7 +187,7 @@ class Thermostat {
   }
 
   setTargetHeatingCoolingState(val, cb) {
-    this.log.debug("Setting Target Mode to " + val + ":" + HK2FJ[val]);
+    this.log.debug("Setting Target Mode to HK=" + val + " FJ=" + HK2FJ[val]);
     this._pauseProgram();
     this.api.setDeviceProp(this.keyCurrentHeatingCoolingState, HK2FJ[val], cb);
   }
