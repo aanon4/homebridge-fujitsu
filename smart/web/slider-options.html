@@ -7,7 +7,7 @@
       <select class="high">
         <option value="0">-</option>
         {{#each (array 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85)}}
-        <option value="{{this}}" {{#if (eq this ../high)}}selected{{/if}}>{{this}} &deg;{{../unit}}</option>
+        <option value="{{this}}" {{#if (eq this ../high)}}selected{{/if}}>{{this}} &deg;F</option>
         {{/each}}
       </select>
     </div>
@@ -16,15 +16,33 @@
       <select class="low">
         <option value="0">-</option>
         {{#each (array 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85)}}
-        <option value="{{this}}" {{#if (eq this ../low)}}selected{{/if}}>{{this}} &deg;{{../unit}}</option>
+        <option value="{{this}}" {{#if (eq this ../low)}}selected{{/if}}>{{this}} &deg;F</option>
         {{/each}}
       </select>
     </div>
     {{else}}
-    <div><label>High</label><input class="high" type="number" min="0" max="35" step="0.5" value="{{high}}">&deg;{{unit}}</div>
-    <div><label>Low</label><input class="low" type="number" min="0" max="35" step="0.5" value="{{low}}">&deg;{{unit}}</div>
+    <div>
+      <label>High</label>
+      <select class="high">
+        <option value="0">-</option>
+        {{#each (array 7 7.5 8 8.5 9 9.5 10 10.5 11 11.5 12 12.5 13 13.5 14 14.5 15 15.5 16 16.5 17 17.5 18 18.5 19 19.5 20 20.5 21 21.5 22 22.5 23 23.5 24 24.5 25 25.5 26 26.5 27 27.5 28 28.5 29 29.5 30)}}
+        <option value="{{this}}" {{#if (eq this ../high)}}selected{{/if}}>{{this}} &deg;C</option>
+        {{/each}}
+      </select>
+    </div>
+    <div>
+      <label>High</label>
+      <select class="low">
+        <option value="0">-</option>
+        {{#each (array 7 7.5 8 8.5 9 9.5 10 10.5 11 11.5 12 12.5 13 13.5 14 14.5 15 15.5 16 16.5 17 17.5 18 18.5 19 19.5 20 20.5 21 21.5 22 22.5 23 23.5 24 24.5 25 25.5 26 26.5 27 27.5 28 28.5 29 29.5 30)}}
+        <option value="{{this}}" {{#if (eq this ../low)}}selected{{/if}}>{{this}} &deg;C</option>
+        {{/each}}
+      </select>
+    </div>
     {{/if}}
-    <div><label>Time</label><input title="time" class="time" type="time" value="{{time}}"></div>
+    <div>
+      <label>Time</label><input title="time" class="time" type="time" value="{{time}}">
+    </div>
   </div>
   <div class="box-label">Temperatures</div>
   <div class="box">
