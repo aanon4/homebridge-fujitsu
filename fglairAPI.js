@@ -74,7 +74,6 @@ function set_region(region) {
   else {
     //use the defaults
   }
-
 }
 
 function read_devices_options(token) {
@@ -82,8 +81,9 @@ function read_devices_options(token) {
 
   temp_options['method'] = 'GET';
   temp_options['path'] = "/apiv1/" + "devices.json"
-  if (token != '')
+  if (token) {
     temp_options['headers']['Authorization'] = 'auth_token ' + token;
+  }
   return temp_options;
 }
 
@@ -109,9 +109,9 @@ function read_property_options(prop_key, token) {
 var fglair = {
 
   checkToken: function (token = '', callback) {
-    if (token == '')
+    if (!token) {
       return false;
-
+    }
     return true;
   },
 
@@ -155,8 +155,7 @@ var fglair = {
       log.debug(`statusCode: ${res.statusCode}`);
       res.on('data', (d) => {
         data += d;
-
-      })
+      });
       res.on('end', () => {
         if (res.statusCode == 200) {
           let data_json = JSON.parse(data);
@@ -178,7 +177,6 @@ var fglair = {
       callback(err);
     });
     req2.end();
-
   },
 
   setDeviceProp: function (property_key, val, callback) {
@@ -189,7 +187,7 @@ var fglair = {
       log.debug(`Write Property statusCode: ${res.statusCode}`);
       res.on('data', (d) => {
         data += d;
-      })
+      });
       res.on('end', () => {
         callback(null)
       });
@@ -213,16 +211,12 @@ var fglair = {
           access_token = JSON.parse(d)['access_token'];
           log.debug("API Access Token: " + access_token);
           callback(null, access_token);
-        })
-
-      })
-
+        });
+      });
       req.on('error', (error) => {
         log.error("Error: " + error);
         callback(error, null);
-
-      })
-
+      });
       req.write(body);
       req.end();
     }
@@ -230,7 +224,6 @@ var fglair = {
       log.debug("API Using Access Token: " + access_token);
       callback(null, access_token);
     }
-
   },
 
   setLog: function (logfile) {
