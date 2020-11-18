@@ -23,18 +23,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.*/
 
-var https = require('https');
+const https = require('https');
 
-var log = {
+const DISABLE_SET = true; // True to disable updating hardware (for debugging)
+
+let log = {
   debug: console.log,
   error: console.error
 };
-var access_token = '';
-var devices_dsn = [];
-var username = '';
-var user_pwd = '';
+let access_token = '';
+const devices_dsn = [];
+let username = '';
+let user_pwd = '';
 
-var options_auth = {
+const options_auth = {
   hostname: "user-field.aylanetworks.com",
   port: 443,
   path: "/users/sign_in.json",
@@ -44,7 +46,7 @@ var options_auth = {
   }
 }
 
-var options = {
+const options = {
   hostname: "ads-field.aylanetworks.com",
   port: 443,
   path: "/apiv1/",
@@ -53,7 +55,7 @@ var options = {
     'Content-Type': 'application/json',
   }
 }
-var appID = {
+const appID = {
   app_id: "CJIOSP-id",
   app_secret: "CJIOSP-Vb8MQL_lFiYQ7DKjN0eCFXznKZE"
 }
@@ -180,6 +182,10 @@ var fglair = {
   },
 
   setDeviceProp: function (property_key, val, callback) {
+    if (DISABLE_SET) {
+      callback(null);
+      return;
+    }
     let data = '';
     let body = '{\"datapoint\": {\"value\": ' + val + ' } }';
     let opt = read_property_options(property_key, access_token)
