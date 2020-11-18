@@ -25,7 +25,7 @@ SOFTWARE.*/
 
 const https = require('https');
 
-const DISABLE_SET = true; // True to disable updating hardware (for debugging)
+const DISABLE_SET = false; // True to disable updating hardware (for debugging)
 
 let log = {
   debug: console.log,
