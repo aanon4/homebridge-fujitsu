@@ -82,7 +82,7 @@ class Thermostat {
       this.api.getDevices((err, data) => {
         if (err) {
           //TODO:  Do something...
-          console.log(err, data);
+          this.log.debug(err, data);
         }
         else {
           this.serial = data[0]; //Only one thermostat is supported
