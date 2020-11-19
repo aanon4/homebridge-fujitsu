@@ -98,7 +98,7 @@ class Thermostat {
         ctx.log("Update Properties: " + err.message);
         return;
       }
-      console.log(JSON.stringify(properties, null, 2));
+      //console.log(JSON.stringify(properties, null, 2));
 
       const remote = {
         targetHeatingCoolingState: null,
