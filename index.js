@@ -7,6 +7,8 @@
 // (c) 2020 Ryan Beggs, MIT License
 //
 
+const { calcTTL } = require('node-persist');
+
 let Service;
 let Characteristic;
 let HbAPI;
@@ -62,40 +64,30 @@ class Thermostat {
     this.password = config.password || '';
     this.temperatureDisplayUnits = config.temperatureDisplayUnits || 0;
 
-    this.keyTargetTemperature = 0;
-    this.keyCurrentHeatingCoolingState = 0;
-    this.keyFanSpeed = 0;
-
     this.log.debug(this.name);
     this.service = new Service.Thermostat(this.name);
     this.fan = new Service.Fanv2(`${this.name} Fan`);
     this.api = require('./fglairAPI.js')
     this.api.setLog(this.log);
-    this.api.setToken(this.token);
     this.api.setRegion(this.region);
-
-    console.log('calling getAuth', this.userName, this.password);
-    this.api.getAuth(this.userName, this.password, (err, token) => {
-      console.log(err, token);
-      this.token = token;
-      this.api.setToken(this.token);
-      this.api.getDevices((err, data) => {
-        if (err) {
-          //TODO:  Do something...
-          this.log.debug(err, data);
-        }
-        else {
-          this.serial = data[0]; //Only one thermostat is supported
-          this.updateAll(this);
-          setInterval(this.updateAll, this.interval, this);
-        }
-      });
-
-    });
 
     this.smart = require('./smart');
     this.smart.start(config.smart, this.log, HbAPI).catch(e => {
       this.log.error(e);
+    }).then(() => {
+      this.api.getAuth(this.userName, this.password, (err, token) => {
+        this.api.setToken(token);
+        this.api.getDevices((err, data) => {
+          if (err) {
+            this.log.debug(err, data);
+          }
+          else {
+            this.serial = data[0]; //Only one thermostat is supported
+            this.updateAll(this);
+            setInterval(this.updateAll, this.interval, this);
+          }
+        });
+      });
     });
   }
 
@@ -113,31 +105,20 @@ class Thermostat {
         targetFanSpeed: null
       };
       properties.forEach(prop => {
-        switch (prop['property']['name']) {
+        switch (prop.property.name) {
           case 'adjust_temperature':
-            remote.targetTemperatureC = parseInt(prop['property']['value']) / 10;
-            ctx.keyTargetTemperature = prop['property']['key'];
+            remote.targetTemperatureC = parseInt(prop.property.value) / 10;
             break;
           case 'operation_mode':
-            remote.targetHeatingCoolingState = FJ2HK[prop['property']['value']];
-            ctx.keyCurrentHeatingCoolingState = prop['property']['key'];
+            remote.targetHeatingCoolingState = FJ2HK[prop.property.value];
             break;
           case 'fan_speed':
-            remote.targetFanSpeed = parseInt(prop['property']['value']);
-            ctx.keyFanSpeed = prop['property']['key'];
+            remote.targetFanSpeed = parseInt(prop.property.value);
             break;
           default:
             break;
         }
       });
-
-      // If remote information doesn't match our local state a remote change was made. Pause the program.
-      if (ctx.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value != remote.targetHeatingCoolingState ||
-        ctx.service.getCharacteristic(Characteristic.TargetTemperature).value != remote.TargetTemperature ||
-        ctx.service.getCharacteristic(Characteristic.TargetFanState) != 1) {
-        // Change made remotely - put program on hold
-        ctx._pauseProgram();
-      }
 
       if (Date.now() < ctx.smart.currentProgram.pauseUntil) {
         // Program on hold. Update local characteristics only
@@ -152,13 +133,21 @@ class Thermostat {
         );
         ctx.fan.updateCharacteristic(Characteristic.TargetFanState, remote.targetFanSpeed === FJ_FAN_AUTO ? HK_FAN_AUTO : HK_FAN_MANUAL);
       }
+      // If 'pauseUntil' is zero, we have have set a program. If that's not what we read back then a remote override
+      // was made and we should honor it for a given hold time.
+      else if (ctx.smart.currentProgram.pauseUntil === 0 &&
+        (ctx.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value != remote.targetHeatingCoolingState ||
+         ctx.service.getCharacteristic(Characteristic.TargetTemperature).value != remote.TargetTemperature ||
+         ctx.service.getCharacteristic(Characteristic.TargetFanState) != 1)) {
+          // Change made remotely - put program on hold
+          ctx.smart.pauseProgram();
+      }
       else {
         // Update thermostat from program (use setCharacteristic so we call the relevant 'set' listeners)
-        // Save and restore the pause time as this will get updated when we update the characteristics, and we don't want
-        // to keep that.
-        const savedPaused = ctx.smart.currentProgram.pauseUntil;
+        if (typeof ctx.smart.currentProgram.targetTemperatureC === 'number') {
+          ctx.service.setCharacteristic(Characteristic.TargetTemperature, ctx.smart.currentProgram.targetTemperatureC);
+        }
         ctx.service.setCharacteristic(Characteristic.TargetHeatingCoolingState, ctx.smart.currentProgram.targetMode);
-        ctx.service.setCharacteristic(Characteristic.TargetTemperature, ctx.smart.currentProgram.targetTemperatureC);
         if (ctx.smart.currentProgram.fanSpeed === 'auto') {
           ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_AUTO);
         }
@@ -166,7 +155,8 @@ class Thermostat {
           ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_MANUAL);
           ctx.fan.setCharacteristic(Characteristic.RotationSpeed, ctx.smart.currentProgram.fanSpeed);
         }
-        ctx.smart.currentProgram.pauseUntil = savedPaused;
+        // Reset 'pauseUntil'. This indicates we have set a program and will allow us to check for remote overrides.
+        ctx.smart.resumeProgram();
       }
 
       ctx.service.updateCharacteristic(Characteristic.CurrentHeatingCoolingState, remote.targetHeatingCoolingState);
@@ -182,48 +172,44 @@ class Thermostat {
     });
   }
 
-  _pauseProgram() {
-    this.smart.currentProgram.pauseUnil = Date.now() + this.smart.holdTime;
-  }
-
   setTargetHeatingCoolingState(val, cb) {
     this.log.debug("Setting Target Mode to HK=" + val + " FJ=" + HK2FJ[val]);
-    this._pauseProgram();
-    this.api.setDeviceProp(this.keyCurrentHeatingCoolingState, HK2FJ[val], cb);
+    this.smart.pauseProgram();
+    this.api.setDeviceProp(this.serial, 'operation_mode', HK2FJ[val], cb);
   }
 
   setTargetTemperature(val, cb) {
     this.log.debug("Setting Temperature to " + val);
-    this._pauseProgram();
-    this.api.setDeviceProp(this.keyTargetTemperature, Math.round(val * 10), cb);
+    this.smart.pauseProgram();
+    this.api.setDeviceProp(this.serial, 'adjust_temperature', Math.round(val * 2) * 5, cb);
   }
 
   setFanActive(val, cb) {
     this.log.debug('setFanActive', val);
-    this._pauseProgram();
+    this.smart.pauseProgram();
     if (!val) {
-      this.api.setDeviceProp(this.keyCurrentHeatingCoolingState, FJ_OFF, cb);
+      this.api.setDeviceProp(this.serial, 'operation_mode', FJ_OFF, cb);
     }
     else {
-      this.api.setDeviceProp(this.keyCurrentHeatingCoolingState, HK2FJ[this.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value], cb);
+      this.api.setDeviceProp(this.serial, 'operation_mode', HK2FJ[this.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value], cb);
     }
   }
 
   setTargetFanState(val, cb) {
     this.log.debug('setTargetFanState', val ? 'automatic' : 'manual');
-    this._pauseProgram();
+    this.smart.pauseProgram();
     if (val === HK_FAN_MANUAL) {
       this.setRotationSpeed(this.fan.getCharacteristic(Characteristic.RotationSpeed).value, cb);
     }
     else {
       // Automatic
-      this.api.setDeviceProp(this.keyFanSpeed, FJ_FAN_AUTO, cb);
+      this.api.setDeviceProp(this.serial, 'fan_speed', FJ_FAN_AUTO, cb);
     }
   }
 
   setRotationSpeed(val, cb) {
     this.log.debug('setRotationSpeed', val);
-    this._pauseProgram();
+    this.smart.pauseProgram();
     let fanSpeed = FJ_FAN_AUTO;
     if (val <= HK_FAN_QUIET) {
       fanSpeed = FJ_FAN_QUIET;
@@ -237,7 +223,7 @@ class Thermostat {
     else {
       fanSpeed = FJ_FAN_HIGH;
     }
-    this.api.setDeviceProp(this.keyFanSpeed, fanSpeed, cb);
+    this.api.setDeviceProp(this.serial, 'fan_speed', fanSpeed, cb);
   }
 
   getServices() {

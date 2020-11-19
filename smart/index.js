@@ -22,7 +22,7 @@ class Smart {
     this.away = null
     this.restoreAwaySchedule = null;
     this.currentProgram = {
-      targetMode: MODE_OFF,
+      targetMode: MODE_HEAT,
       currentTemperatureC: null,
       targetTemperatureC: null,
       programLowTempC: null,
@@ -30,7 +30,7 @@ class Smart {
       adjustedHighTempC: null,
       adjustedLowTempC: null,
       fanSpeed: 'auto',
-      pauseUntil: 0
+      pauseUntil: Date.now()
     };
   }
 
@@ -44,12 +44,6 @@ class Smart {
     this.unit = (config.unit || 'c').toLowerCase();
     this.currentProgramUntil = 0;
 
-    if (config.miio) {
-      const miio = require('./sensors/miio');
-      await miio.login(config.miio, this.log);
-      this.sensors = miio;
-    }
-
     if (config.schedule) {
       this.setSchedule('normal', this.buildSchedule(config.schedule));
       this.setScheduleTo('normal');
@@ -58,6 +52,12 @@ class Smart {
       this.loadState();
       this.web = require('./web/server');
       this.web.start(this, config);
+    }
+
+    if (config.miio) {
+      const miio = require('./sensors/miio');
+      await miio.login(config.miio, this.log);
+      this.sensors = miio;
     }
 
     if (config.away) {
@@ -434,6 +434,16 @@ class Smart {
 
   getDevices() {
     return this.devices;
+  }
+
+  pauseProgram() {
+    this.currentProgram.pauseUntil = Date.now() + this.holdTime;
+    Bus.emit('smart.program.update', this.currentProgram);
+  }
+
+  resumeProgram() {
+    this.currentProgram.pauseUntil = 0;
+    Bus.emit('smart.program.update', this.currentProgram);
   }
 
   loadState() {

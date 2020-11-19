@@ -36,6 +36,8 @@ const devices_dsn = [];
 let username = '';
 let user_pwd = '';
 
+const q = [];
+
 const options_auth = {
   hostname: "user-field.aylanetworks.com",
   port: 443,
@@ -98,15 +100,14 @@ function read_properties_options(dsn, token) {
   return temp_options;
 }
 
-function read_property_options(prop_key, token) {
+function set_property_options(dsn, prop_key, token) {
   let temp_options = options;
 
   temp_options['method'] = 'POST';
-  temp_options['path'] = "/apiv1/properties/" + prop_key + "/datapoints.json";
+  temp_options['path'] = "/apiv1/dsns/" + dsn + "/properties/" + prop_key + "/datapoints.json";
   temp_options['headers']['Authorization'] = 'auth_token ' + token;
   return temp_options;
 }
-
 
 var fglair = {
 
@@ -181,21 +182,22 @@ var fglair = {
     req2.end();
   },
 
-  setDeviceProp: function (property_key, val, callback) {
+  setDeviceProp: function (dsn, property_name, val, callback) {
     if (DISABLE_SET) {
       callback(null);
       return;
     }
     let data = '';
-    let body = '{\"datapoint\": {\"value\": ' + val + ' } }';
-    let opt = read_property_options(property_key, access_token)
-    let req = https.request(opt, (res) => {
+    const body = '{\"datapoint\": {\"value\": ' + val + ' } }';
+    const opt = set_property_options(dsn, property_name, access_token);
+    const req = https.request(opt, res => {
       log.debug(`Write Property statusCode: ${res.statusCode}`);
       res.on('data', (d) => {
         data += d;
       });
       res.on('end', () => {
-        callback(null)
+        console.log('setdevprop', property_name, val, data);
+        callback(null);
       });
     }).on('error', (err) => {
       log.error("Error: " + err.message);
@@ -233,7 +235,7 @@ var fglair = {
   },
 
   setLog: function (logfile) {
-    //log = logfile;
+    log = logfile;
   },
 
   setToken: function (token) {
