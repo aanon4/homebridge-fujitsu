@@ -14,7 +14,6 @@ class Smart {
     this.devices = {};
     this.sensors = null;
     this.poller = null;
-    this.referenceDevice = null;
     this.feelsLike = false;
     this.holdTime = 0;
     this.unit = 'c';
@@ -32,13 +31,13 @@ class Smart {
       fanSpeed: 'auto',
       pauseUntil: Date.now()
     };
+    this.referenceTemperature = null;
   }
 
   async start(config, log, hbapi) {
     this.log = log;
     this.hbapi = hbapi;
     this.stateFile = Path.join(hbapi.user.persistPath(), 'smart-state.json');
-    this.referenceDevice = config.reference;
     this.feelsLike = config.feelslike || false;
     this.holdTime = (config.hold || 60) * 60 * 1000;
     this.unit = (config.unit || 'c').toLowerCase();
@@ -127,22 +126,15 @@ class Smart {
   }
 
   _updateProgram() {
-    // Current reference temperature
-    let currentReferenceTemperature = null;
-    const refdevice = this.devices[this.referenceDevice];
-    if (refdevice && refdevice.environ && refdevice.environ.online) {
-      currentReferenceTemperature = refdevice.environ.temperature;
-    }
-
     let adjustedLowTempC = null;
     let adjustedHighTempC = null;
-    this.currentProgram.currentTemperatureC = currentReferenceTemperature;
 
     // Generate a current temperature based on the temperature of the sensors.
     // These values are weighted, based on a schedule and/or motion associated
     // with the sensors.
+    this.currentProgram.currentTemperatureC = this.referenceTemperature;
     const program = this._getSchedule();
-    if (refdevice && program && (program.low !== null || program.high !== null)) {
+    if (this.referenceTemperature !== null && program && (program.low !== null || program.high !== null)) {
 
       adjustedLowTempC = program.low;
       adjustedHighTempC = program.high;
@@ -167,7 +159,7 @@ class Smart {
 
       if (totalWeight !== 0) {
         this.currentProgram.currentTemperatureC = totalWeightedTemperature / totalWeight;
-        const currentTempDiffC = this.currentProgram.currentTemperatureC - currentReferenceTemperature;
+        const currentTempDiffC = this.currentProgram.currentTemperatureC - this.referenceTemperature;
         if (adjustedLowTempC !== null) {
           adjustedLowTempC -= currentTempDiffC;
         }
@@ -444,6 +436,10 @@ class Smart {
   resumeProgram() {
     this.currentProgram.pauseUntil = 0;
     Bus.emit('smart.program.update', this.currentProgram);
+  }
+
+  setReferenceTemperature(temp) {
+    this.referenceTemperature = temp;
   }
 
   loadState() {

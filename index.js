@@ -98,11 +98,13 @@ class Thermostat {
         ctx.log("Update Properties: " + err.message);
         return;
       }
+      console.log(JSON.stringify(properties, null, 2));
 
       const remote = {
         targetHeatingCoolingState: null,
         targetTemperatureC: null,
-        targetFanSpeed: null
+        targetFanSpeed: null,
+        currentTemperatureC: null
       };
       properties.forEach(prop => {
         switch (prop.property.name) {
@@ -115,10 +117,15 @@ class Thermostat {
           case 'fan_speed':
             remote.targetFanSpeed = parseInt(prop.property.value);
             break;
+          case 'display_temperature':
+            remote.currentTemperatureC = parseInt(prop.property.value) / 100 - 50; // 7125 when 70F on app, 7075 when 69
+            break;
           default:
             break;
         }
       });
+
+      ctx.smart.setReferenceTemperature(remote.currentTemperatureC);
 
       if (Date.now() < ctx.smart.currentProgram.pauseUntil) {
         // Program on hold. Update local characteristics only
@@ -161,8 +168,8 @@ class Thermostat {
 
       ctx.service.updateCharacteristic(Characteristic.CurrentHeatingCoolingState, remote.targetHeatingCoolingState);
       if (ctx.smart.currentProgram.currentTemperatureC === null) {
-        // If we don't know the current temperature (no sensors), we just have to use the target temperature
-        ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, remote.targetTemperatureC);
+        // If we don't know the current temperature (no sensors), we just have to use the thermostat current temperature.
+        ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, remote.currentTemperatureC);
       }
       else {
         ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, ctx.smart.currentProgram.currentTemperatureC);

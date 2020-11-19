@@ -28,7 +28,6 @@ This started life as an extension to the current mini-split module but with fan 
                 "password": "MII PASSWORD",
                 "region": "cn"
             },
-            "reference": "THERMOSTAT ROOM",
             "feelslike": true,
             "hold": 60,
             "unit": "f",
@@ -64,7 +63,6 @@ This started life as an extension to the current mini-split module but with fan 
 | `smart.miio.username` | `Mi Home` Username |
 | `smart.miio.password` | `Mi Home` Password |
 | `smart.miio.region` _(optional)_ | Will default to `cn` which supports the latest range of sensor types, but can be set to other regions |
-| `smart.reference` | The room name of a sensor which is used as the temperature reference when making thermostat adjustments. This should be the sensor nearest the thermostat (the thermostat API doesn't provide its own temperature reading) |
 | `smart.feeslike` _(optional)_ | If `true` the temperatures will be adjusted based on the humidity, to better refect the temperatures rooms feel |
 | `smart.hold` _(optional)_ | Number of minutes (Default: 60 mins.) to hold the temperature without adjustment if changed externally (e.g. on the wall thermostat)
 | `smart.unit` _(optional)_ | The units (C or F) for the low and high temperatures in the schedule (Default: C) |
