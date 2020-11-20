@@ -196,7 +196,7 @@ var fglair = {
         data += d;
       });
       res.on('end', () => {
-        console.log('setdevprop', property_name, val, data);
+        log.debug('setdevprop', property_name, val, data);
         callback(null);
       });
     }).on('error', (err) => {

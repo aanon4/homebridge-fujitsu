@@ -98,7 +98,7 @@ class Thermostat {
         ctx.log("Update Properties: " + err.message);
         return;
       }
-      //console.log(JSON.stringify(properties, null, 2));
+      //ctx.log(JSON.stringify(properties, null, 2));
 
       const remote = {
         targetHeatingCoolingState: null,
@@ -152,14 +152,18 @@ class Thermostat {
       ctx.smart.setReferenceTemperature(remote.currentTemperatureC);
       const program = ctx.smart.getProgram();
 
-      console.log('program', program);
-      console.log('remote', remote);
+      const hkstate = {
+        targetMode: ctx.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value,
+        targetTemperatureC: ctx.service.getCharacteristic(Characteristic.TargetTemperature).value,
+        targetFanState: ctx.fan.getCharacteristic(Characteristic.TargetFanState).value,
+        targetFanSpeed: ctx.fan.getCharacteristic(Characteristic.RotationSpeed).value
+      };
 
       // Without a target tempoerature, we don't make any changes
       if (program.targetTemperatureC !== null) {
 
         if (Date.now() < program.pauseUntil) {
-          console.log('*** program on hold');
+          ctx.log('*** program on hold');
           // Program on hold. Update local characteristics only
           ctx.service.updateCharacteristic(Characteristic.TargetTemperature, remote.targetTemperatureC);
           ctx.service.updateCharacteristic(Characteristic.TargetHeatingCoolingState, remote.targetHeatingCoolingState);
@@ -170,50 +174,44 @@ class Thermostat {
         // If 'pauseUntil' is zero, we have have set a program. If that's not what we read back then a remote override
         // was made and we should honor it for a given hold time.
         else if (program.pauseUntil === 0 &&
-          (ctx.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value != remote.targetHeatingCoolingState ||
-          ctx.service.getCharacteristic(Characteristic.TargetTemperature).value != remote.targetTemperatureC ||
-          ctx.fan.getCharacteristic(Characteristic.TargetFanState).value != remote.targetFanState ||
-          (ctx.fan.getCharacteristic(Characteristic.TargetFanState).value === HK_FAN_MANUAL && ctx.service.getCharacteristic(Characteristic.RotationSpeed).value != remote.targetFanSpeed))) {
+          (hkstate.targetMode != remote.targetHeatingCoolingState ||
+           hkstate.targetTemperatureC != remote.targetTemperatureC ||
+           hkstate.targetFanState != remote.targetFanState ||
+           (hkstate.targetFanState === HK_FAN_MANUAL && ctx.service.getCharacteristic(Characteristic.RotationSpeed).value != remote.targetFanSpeed))) {
             // Change made remotely - put program on hold
-            console.log(
-              'state', ctx.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value,
-              'temp', ctx.service.getCharacteristic(Characteristic.TargetTemperature).value,
-              'fan', ctx.fan.getCharacteristic(Characteristic.TargetFanState).value,
-              'speed', ctx.fan.getCharacteristic(Characteristic.RotationSpeed).value
-            );
-            console.log('*** pausing program');
+            ctx.log('*** pausing program');
             ctx.smart.pauseProgram();
         }
         else {
           // Update thermostat from program (use setCharacteristic so we call the relevant 'set' listeners)
-          if (program.targetTemperatureC != ctx.service.getCharacteristic(Characteristic.TargetTemperature).value) {
+          if (program.targetTemperatureC != hkstate.targetTemperatureC) {
             ctx.service.setCharacteristic(Characteristic.TargetTemperature, program.targetTemperatureC);
           }
-          if (program.targetMode != ctx.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value) {
+          if (program.targetMode != hkstate.targetMode) {
             ctx.service.setCharacteristic(Characteristic.TargetHeatingCoolingState, program.targetMode);
           }
 
           if (program.fanSpeed === 'auto') {
-            if (ctx.fan.getCharacteristic(Characteristic.TargetFanState).value !== HK_FAN_AUTO) {
+            if (hkstate.targetFanState !== HK_FAN_AUTO) {
               ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_AUTO);
             }
           }
           else {
-            if (ctx.fan.getCharacteristic(Characteristic.TargetFanState).value !== HK_FAN_MANUAL) {
+            if (hkstate.targetFanState !== HK_FAN_MANUAL) {
               ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_MANUAL);
             }
-            if (ctx.fan.getCharacteristic(Characteristic.RotationSpeed).value !== program.fanSpeed) {
+            if (hkstate.targetFanSpeed !== program.fanSpeed) {
               ctx.fan.setCharacteristic(Characteristic.RotationSpeed, program.fanSpeed);
             }
           }
 
           // Reset 'pauseUntil'. This indicates we have set a program and will allow us to check for remote overrides.
           ctx.smart.resumeProgram();
-          console.log('*** setting program');
+          ctx.log('*** setting program');
         }
       }
       else {
-        console.log('*** no change');
+        ctx.log('*** no change');
       }
 
       ctx.service.updateCharacteristic(Characteristic.CurrentHeatingCoolingState, remote.targetHeatingCoolingState);
