@@ -243,7 +243,7 @@ class Thermostat {
     this.log.debug('setFanActive', val);
     this.smart.pauseProgram();
     if (!val) {
-      this.api.setDeviceProp(this.serial, 'operation_mode', FJ_OFF, cb);
+      this.api.setDeviceProp(this.serial, 'operation_mode', FJ_AUTO, cb);
     }
     else {
       this.api.setDeviceProp(this.serial, 'operation_mode', HK2FJ[this.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value], cb);
