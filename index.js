@@ -225,6 +225,11 @@ class Thermostat {
   }
 
   setTargetHeatingCoolingState(val, cb) {
+    // Opening the home app set this value (for some reason) so don't actually do it unless it's different.
+    if (val === this.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value) {
+      cb(null);
+      return;
+    }
     this.log.debug("Setting Target Mode to HK=" + val + " FJ=" + HK2FJ[val]);
     this.smart.pauseProgram();
     this.api.setDeviceProp(this.serial, 'operation_mode', HK2FJ[val], cb);
