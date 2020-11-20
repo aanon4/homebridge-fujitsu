@@ -26,8 +26,8 @@ class Smart {
       targetTemperatureC: null,
       programLowTempC: null,
       programHighTempC: null,
-      adjustedHighTempC: null,
       adjustedLowTempC: null,
+      adjustedHighTempC: null,
       fanSpeed: 'auto',
       pauseUntil: Date.now()
     };
@@ -169,6 +169,10 @@ class Smart {
       }
     }
 
+    // Units of 0.5c
+    adjustedLowTempC = Math.round(adjustedLowTempC * 2) / 2;
+    adjustedHighTempC = Math.round(adjustedHighTempC * 2) / 2;
+
     this.currentProgram.adjustedLowTempC = adjustedLowTempC;
     this.currentProgram.adjustedHighTempC = adjustedHighTempC;
     if (program) {
@@ -195,7 +199,22 @@ class Smart {
       this.currentProgram.targetTemperatureC = adjustedHighTempC;
     }
     else {
-      // Just right - leave the current mode and target 'as is'.
+      // Just right - leave the current mode and set target accordingly
+      switch (this.currentProgram.targetMode) {
+        case MODE_HEAT:
+          this.currentProgram.targetTemperatureC = adjustedLowTempC;
+          break;
+        case MODE_COOL:
+          this.currentProgram.targetTemperatureC = adjustedHighTempC;
+          break;
+        case MODE_AUTO:
+          this.currentProgram.targetTemperatureC = adjustedHighTempC !== null ? adjustedHighTempC : adjustedLowTempC;
+          break;
+        case MODE_OFF:
+        default:
+          this.currentProgram.targetTemperatureC = null;
+          break;
+      }
     }
 
     Bus.emit('smart.program.update', this.currentProgram);
@@ -394,7 +413,7 @@ class Smart {
     }
 
     const toC = (v) => {
-      return Feels.tempConvert(parseFloat(v), this.unit, 'c');
+      return Math.round(Feels.tempConvert(parseFloat(v), this.unit, 'c') * 2) / 2;
     }
 
     const computed = [];
@@ -426,6 +445,11 @@ class Smart {
 
   getDevices() {
     return this.devices;
+  }
+
+  getProgram() {
+    this._updateProgram();
+    return this.currentProgram;
   }
 
   pauseProgram() {
