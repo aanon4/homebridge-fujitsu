@@ -28,6 +28,7 @@ Miio.prototype.updateDevices = async function(devices) {
     return name;
   }
   const miidevices = await Mihome.miCloudProtocol.getDevices(null, { country: this.region });
+  const now = Math.floor(Date.now() / 1000);
   miidevices.forEach(dev => {
     this.log.debug('updateDevices: device', dev);
     try {
@@ -42,15 +43,16 @@ Miio.prototype.updateDevices = async function(devices) {
           };
           break;
         case 'lumi.sensor_motion.aq2':
+          const lastmotion = now - JSON.parse(dev.event['event.motion']).timestamp;
+          const lastnomotion = now - JSON.parse(dev.event['event.no_motion']).timestamp;
           (devices[name] || (devices[name] = {})).motion = {
             online: dev.isOnline,
-            motion: dev.event['prop.no_motion_1800'] != '1'
+            motion: lastmotion < 1800,
           };
           break;
         /*
         case 'lumi.sensor_magnet.v2':
         case 'lumi.sensor_magnet.aq2':
-          const now = Math.floor(Date.now() / 1000);
           const lastopen = now - JSON.parse(dev.event['event.open']).timestamp;
           const lastclose = now - JSON.parse(dev.event['event.close']).timestamp;
           (devices[name] || (devices[name] = {})).magnet = {
