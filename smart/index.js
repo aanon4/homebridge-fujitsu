@@ -32,9 +32,10 @@ class Smart {
       pauseUntil: Date.now()
     };
     this.referenceTemperature = null;
+    this.onUpdateCallback = null;
   }
 
-  async start(config, log, hbapi) {
+  async start(config, log, hbapi, onUpdate) {
     this.log = log;
     this.hbapi = hbapi;
     this.stateFile = Path.join(hbapi.user.persistPath(), 'smart-state.json');
@@ -42,6 +43,7 @@ class Smart {
     this.holdTime = (config.hold || 60) * 60 * 1000;
     this.unit = (config.unit || 'c').toLowerCase();
     this.currentProgramUntil = 0;
+    this.onUpdateCallback = onUpdate;
 
     if (config.schedule) {
       this.setSchedule('normal', this.buildSchedule(config.schedule));
@@ -170,8 +172,8 @@ class Smart {
     }
 
     // Units of 0.5c
-    adjustedLowTempC = Math.round(adjustedLowTempC * 2) / 2;
-    adjustedHighTempC = Math.round(adjustedHighTempC * 2) / 2;
+    adjustedLowTempC = adjustedLowTempC !== null ? Math.round(adjustedLowTempC * 2) / 2 : null;
+    adjustedHighTempC = adjustedHighTempC !== null ? Math.round(adjustedHighTempC * 2) / 2 : null;
 
     this.currentProgram.adjustedLowTempC = adjustedLowTempC;
     this.currentProgram.adjustedHighTempC = adjustedHighTempC;
@@ -220,6 +222,8 @@ class Smart {
     Bus.emit('smart.program.update', this.currentProgram);
 
     this.log.debug('_updateProgram: currentProgram:', JSON.stringify(this.currentProgram, null, 2));
+
+    this.onUpdateCallback();
   }
 
   _getSchedule() {
@@ -448,7 +452,6 @@ class Smart {
   }
 
   getProgram() {
-    this._updateProgram();
     return this.currentProgram;
   }
 

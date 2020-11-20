@@ -57,7 +57,6 @@ This started life as an extension to the current mini-split module but with fan 
 | `username` | `FGLair` Username |
 | `password` | `FGLair` Password |
 | `model` _(optional)_ | Appears under "Model" for your accessory in the Home app |
-| `interval` _(optional)_ | Polling time for thermostat (Default: 60 sec.) |
 | `region` _(optional)_ | Region for thermostat, change for China & E.U. (Default: "us") |
 | `smart` _(optional)_ | Sensor configuration to allow smart adaption of thermostat temperature. |
 | `smart.miio.username` | `Mi Home` Username |

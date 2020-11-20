@@ -59,7 +59,6 @@ class Thermostat {
     this.model = config.model || "DefaultModel";
     this.serial = config.serial || '';
     this.region = config.region || 'us'
-    this.interval = config.interval * 1000 || 10000;
     this.userName = config.username || '';
     this.password = config.password || '';
     this.temperatureDisplayUnits = config.temperatureDisplayUnits || 0;
@@ -71,22 +70,21 @@ class Thermostat {
     this.api.setLog(this.log);
     this.api.setRegion(this.region);
 
-    this.smart = require('./smart');
-    this.smart.start(config.smart, this.log, HbAPI).catch(e => {
-      this.log.error(e);
-    }).then(() => {
-      this.api.getAuth(this.userName, this.password, (err, token) => {
-        this.api.setToken(token);
-        this.api.getDevices((err, data) => {
-          if (err) {
-            this.log.debug(err, data);
-          }
-          else {
-            this.serial = data[0]; //Only one thermostat is supported
+    this.api.getAuth(this.userName, this.password, (err, token) => {
+      this.api.setToken(token);
+      this.api.getDevices((err, data) => {
+        if (err) {
+          this.log.debug(err, data);
+        }
+        else {
+          this.serial = data[0];
+          this.smart = require('./smart');
+          this.smart.start(config.smart, this.log, HbAPI, () => {
             this.updateAll(this);
-            setInterval(this.updateAll, this.interval, this);
-          }
-        });
+          }).catch(e => {
+            this.log.error(e);
+          });
+        }
       });
     });
   }
