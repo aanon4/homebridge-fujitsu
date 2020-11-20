@@ -140,12 +140,13 @@ class Thermostat {
             }
             break;
           case 'display_temperature':
-            remote.currentTemperatureC = parseInt(prop.property.value) / 100 - 50; // 7125 when 70F on app, 7075 when 69
+            remote.currentTemperatureC = parseInt(prop.property.value) / 100 - 50;
             break;
           default:
             break;
         }
       });
+      //console.log(remote);
 
       ctx.smart.setReferenceTemperature(remote.currentTemperatureC);
       const program = ctx.smart.getProgram();
