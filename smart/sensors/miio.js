@@ -47,6 +47,7 @@ Miio.prototype.updateDevices = async function(devices) {
             motion: dev.event['prop.no_motion_1800'] != '1'
           };
           break;
+        /*
         case 'lumi.sensor_magnet.v2':
         case 'lumi.sensor_magnet.aq2':
           const now = Math.floor(Date.now() / 1000);
@@ -58,6 +59,7 @@ Miio.prototype.updateDevices = async function(devices) {
             close: lastclose < 1800
           };
           break;
+        */
       }
     }
     catch (e) {
