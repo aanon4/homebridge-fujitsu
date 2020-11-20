@@ -176,7 +176,7 @@ class Main extends Base {
         time: toT(sched.weektime),
         low: this.toU(sched.low),
         high: this.toU(sched.high),
-        tigger: sched.trigger && sched.trigger[0] && sched.trigger[0].room,
+        trigger: sched.trigger && sched.trigger[0] && sched.trigger[0].room,
         fan: sched.fan,
         rooms: Object.keys(sched.rooms).reduce((rooms, room) => {
           rooms[room] = {

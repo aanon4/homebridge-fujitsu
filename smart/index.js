@@ -359,7 +359,7 @@ class Smart {
           weektime: s.weektime - fromtime + totime,
           high: s.high,
           low: s.low,
-          trigger: s.tigger ? [].concat(s.trigger) : null,
+          trigger: s.trigger ? [].concat(s.trigger) : null,
           fan: s.fan,
           rooms: Object.keys(s.rooms).reduce((rooms, room) => {
             rooms[room] = { occupied : s.rooms[room].occupied, empty: s.rooms[room].empty };
@@ -428,7 +428,7 @@ class Smart {
             weektime: day * 24 * 60 + time,
             low: low,
             high: high,
-            trigger: sched.tigger,
+            trigger: sched.trigger,
             fan: sched.fan || 'auto',
             rooms: sched.rooms
           });
