@@ -54,6 +54,7 @@ body {
   position: relative;
   top: -6px;
   font-size: 100px;
+  line-height: 100px;
   text-align: center;
   color: #c0c0c0;
 }
