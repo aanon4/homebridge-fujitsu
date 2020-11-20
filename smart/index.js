@@ -457,8 +457,8 @@ class Smart {
     Bus.emit('smart.program.update', this.currentProgram);
   }
 
-  resumeProgram() {
-    this.currentProgram.pauseUntil = 0;
+  resumeProgram(when) {
+    this.currentProgram.pauseUntil = when;
     Bus.emit('smart.program.update', this.currentProgram);
   }
 

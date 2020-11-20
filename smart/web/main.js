@@ -150,6 +150,10 @@ class Main extends Base {
     this.smart.copyScheduleDay(msg.from, msg.to);
   }
 
+  async 'schedule.resume' (msg) {
+    this.smart.resumeProgram(Date.now());
+  }
+
   _smart2visual(schedule) {
     function toT(wt) {
       const t = wt % (24 * 60);
