@@ -3,14 +3,12 @@
   {{#if ../feelsLike}}<div class="feelslike">Feels Like</div>{{/if}}
   <div class="high" {{#unless (eq mode 'Off')}}title="Adjusted: {{adjustedhigh}}"{{/unless}}>{{#if (eq mode 'Off')}}-{{else}}{{high}}{{/if}}</div>
 </div>
-{{#if (eq mode 'Heat')}}
-<div class="current" title="Current: {{current}}">{{low}}</div>
-{{else if (eq mode 'Cool')}}
-<div class="current" title="Current: {{current}}">{{high}}</div>
-{{else if (eq mode 'Off')}}
+{{#if (eq mode 'Off')}}
 <div class="current" title="Current: {{current}}">-</div>
+{{else if (eq mode 'Hold')}}
+<div class="current" title="Current: {{current}}">{{remote}}</div>
 {{else}}
-<div class="current" title="Current: {{current}}">{{current}}</div>
+<div class="current" title="Current: {{current}}">{{target}}</div>
 {{/if}}
 <div class="small-temp">
   <div class="low" {{#unless (eq mode 'Off')}}title="Adjusted: {{adjustedlow}}"{{/unless}}>{{#if (eq mode 'Off')}}-{{else}}{{low}}{{/if}}</div>

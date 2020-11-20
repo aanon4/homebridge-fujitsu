@@ -32,6 +32,7 @@ class Smart {
       pauseUntil: Date.now()
     };
     this.referenceTemperature = null;
+    this.remoteTargetTemperatureC = null;
     this.onUpdateCallback = null;
   }
 
@@ -473,9 +474,10 @@ class Smart {
     Bus.emit('smart.program.update', this.currentProgram);
   }
 
-  setReferenceTemperature(temp) {
-    if (temp !== this.referenceTemperature) {
-      this.referenceTemperature = temp;
+  setReferenceTemperatures(refTemp, remoteTargetTemp) {
+    this.remoteTargetTemperatureC = remoteTargetTemp;
+    if (refTemp !== this.referenceTemperature) {
+      this.referenceTemperature = refTemp;
       this._updateProgram();
     }
   }

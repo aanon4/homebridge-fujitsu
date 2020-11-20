@@ -90,6 +90,8 @@ class Main extends Base {
       adjustedhigh: this.toU(p.adjustedHighTempC),
       adjustedlow: this.toU(p.adjustedLowTempC),
       current: this.toU(p.currentTemperatureC),
+      target: this.toU(p.targetTemperatureC),
+      remote: this.toU(this.smart.remoteTargetTemperatureC),
       mode: p.pauseUntil > Date.now() ? 'Hold' :
             this.smart.restoreAwaySchedule ? 'Away' :
             p.targetMode === 1 ? 'Heat' :

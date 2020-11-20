@@ -148,7 +148,7 @@ class Thermostat {
       });
       //console.log(remote);
 
-      ctx.smart.setReferenceTemperature(remote.currentTemperatureC);
+      ctx.smart.setReferenceTemperatures(remote.currentTemperatureC, remote.targetTemperatureC);
       const program = ctx.smart.getProgram();
 
       const hkstate = {
