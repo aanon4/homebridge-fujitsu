@@ -61,7 +61,7 @@ class Main extends Base {
   }
 
   toC(v) {
-    return this.smart.unit === 'f' ? (v - 32) / 9 * 5 : v;
+    return this.smart.unit === 'f' ? Math.round(2 * (v - 32) / 9 * 5) / 2 : v;
   }
 
   updateState() {
