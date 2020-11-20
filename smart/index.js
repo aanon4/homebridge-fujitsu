@@ -185,38 +185,45 @@ class Smart {
       this.currentProgram.fanSpeed = program.fan === 'auto' ? 'auto' : parseInt(program.fan);
     }
 
-    if (adjustedLowTempC === null && adjustedHighTempC === null) {
-      // No active program, so turn it off
-      this.currentProgram.targetMode = MODE_OFF;
-      this.currentProgram.targetTemperatureC = null;
-    }
-    else if (adjustedLowTempC !== null && this.currentProgram.currentTemperatureC < adjustedLowTempC) {
+    // Heating or cooling mode?
+    if (adjustedLowTempC !== null && this.currentProgram.currentTemperatureC < adjustedLowTempC) {
       // Too cold - heat
       this.currentProgram.targetMode = (adjustedLowTempC === adjustedHighTempC ? MODE_AUTO : MODE_HEAT);
-      this.currentProgram.targetTemperatureC = adjustedLowTempC;
     }
     else if (adjustedHighTempC !== null && this.currentProgram.currentTemperatureC > adjustedHighTempC) {
       // Too hot - cool
       this.currentProgram.targetMode = (adjustedLowTempC === adjustedHighTempC ? MODE_AUTO : MODE_COOL);
-      this.currentProgram.targetTemperatureC = adjustedHighTempC;
     }
     else {
-      // Just right - leave the current mode and set target accordingly
-      switch (this.currentProgram.targetMode) {
-        case MODE_HEAT:
+      // Leave the targetMode 'as-is'
+    }
+
+    // Select the final targets
+    switch (this.currentProgram.targetMode) {
+      case MODE_HEAT:
+        this.currentProgram.targetTemperatureC = adjustedLowTempC;
+        break;
+      case MODE_COOL:
+        this.currentProgram.targetTemperatureC = adjustedHighTempC;
+        break;
+      case MODE_AUTO:
+        this.currentProgram.targetTemperatureC = adjustedHighTempC !== null ? adjustedHighTempC : adjustedLowTempC;
+        break;
+      case MODE_OFF:
+        // The mode can be off if we have no program, or because the program won't effect anything
+        // If the latter, guess (and let things correct later).
+        if (adjustedLowTempC !== null) {
           this.currentProgram.targetTemperatureC = adjustedLowTempC;
-          break;
-        case MODE_COOL:
+          this.currentProgram.targetMode = MODE_HEAT;
+        }
+        else if (adjustedHighTempC !== null) {
           this.currentProgram.targetTemperatureC = adjustedHighTempC;
-          break;
-        case MODE_AUTO:
-          this.currentProgram.targetTemperatureC = adjustedHighTempC !== null ? adjustedHighTempC : adjustedLowTempC;
-          break;
-        case MODE_OFF:
-        default:
+          this.currentProgram.targetMode = MODE_COOL;
+        }
+        else {
           this.currentProgram.targetTemperatureC = null;
-          break;
-      }
+        }
+        break;
     }
 
     Bus.emit('smart.program.update', this.currentProgram);
