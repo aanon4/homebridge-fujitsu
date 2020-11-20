@@ -82,6 +82,7 @@ class Smart {
       }
       this._updateSensors().then(() => {
         this._updateProgram();
+        this.onUpdateCallback();
         this.poller = setTimeout(poll, Math.max(0, 60000 - Date.now() % 60000));
       });
     }
@@ -229,8 +230,6 @@ class Smart {
     Bus.emit('smart.program.update', this.currentProgram);
 
     this.log.debug('_updateProgram: currentProgram:', JSON.stringify(this.currentProgram, null, 2));
-
-    this.onUpdateCallback();
   }
 
   _getSchedule() {
@@ -329,6 +328,7 @@ class Smart {
     this.saveState();
     Bus.emit('smart.schedule.update', name, copy);
     this._updateProgram();
+    this.onUpdateCallback();
   }
 
   getSchedule(name) {
@@ -343,6 +343,7 @@ class Smart {
       this.saveState();
       Bus.emit('smart.schedule.update', this.selectedSchedule, this.schedules[this.selectedSchedule]);
       this._updateProgram();
+      this.onUpdateCallback();
     }
   }
 
@@ -473,7 +474,10 @@ class Smart {
   }
 
   setReferenceTemperature(temp) {
-    this.referenceTemperature = temp;
+    if (temp !== this.referenceTemperature) {
+      this.referenceTemperature = temp;
+      this._updateProgram();
+    }
   }
 
   loadState() {
