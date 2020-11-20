@@ -167,7 +167,6 @@ class Thermostat {
           // Program on hold. Update local characteristics only
           ctx.service.updateCharacteristic(Characteristic.TargetTemperature, remote.targetTemperatureC);
           ctx.service.updateCharacteristic(Characteristic.TargetHeatingCoolingState, remote.targetHeatingCoolingState);
-          ctx.fan.updateCharacteristic(Characteristic.Active, remote.targetHeatingCoolingState === Characteristic.CurrentHeatingCoolingState.OFF ? 0 : 1);
           ctx.fan.updateCharacteristic(Characteristic.RotationSpeed, remote.targetFanSpeed);
           ctx.fan.updateCharacteristic(Characteristic.TargetFanState, remote.targetFanState);
         }
@@ -239,17 +238,6 @@ class Thermostat {
     this.api.setDeviceProp(this.serial, 'adjust_temperature', Math.round(val * 2) * 5, cb);
   }
 
-  setFanActive(val, cb) {
-    this.log.debug('setFanActive', val);
-    this.smart.pauseProgram();
-    if (!val) {
-      this.api.setDeviceProp(this.serial, 'operation_mode', FJ_AUTO, cb);
-    }
-    else {
-      this.api.setDeviceProp(this.serial, 'operation_mode', HK2FJ[this.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value], cb);
-    }
-  }
-
   setTargetFanState(val, cb) {
     this.log.debug('setTargetFanState', val ? 'automatic' : 'manual');
     this.smart.pauseProgram();
@@ -305,10 +293,6 @@ class Thermostat {
     this.service
       .getCharacteristic(Characteristic.TargetTemperature)
       .on('set', this.setTargetTemperature.bind(this));
-
-    this.fan
-      .getCharacteristic(Characteristic.Active)
-      .on('set', this.setFanActive.bind(this));
 
     this.fan
       .getCharacteristic(Characteristic.TargetFanState)
