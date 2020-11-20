@@ -24,14 +24,16 @@ class MyWeather {
 
     const fetchWeather = () => {
       Weather.getAllWeather((e, json) => {
-        this.weather = {
-          name: json.name,
-          temperature: json.main.temp,
-          humidity: json.main.humidity,
-          description: json.weather[0].description,
-          icon: `https://openweathermap.org/img/wn/${json.weather[0].icon}@4x.png`
+        if (!e) {
+          this.weather = {
+            name: json.name,
+            temperature: json.main.temp,
+            humidity: json.main.humidity,
+            description: json.weather[0].description,
+            icon: `https://openweathermap.org/img/wn/${json.weather[0].icon}@4x.png`
+          }
+          Bus.emit('weather.update', this.weather);
         }
-        Bus.emit('weather.update', this.weather);
       });
     }
     this.poller = setInterval(fetchWeather, POLL_INTERVAL);
