@@ -44,6 +44,7 @@
       <label>Time</label><input title="time" class="time" type="time" value="{{time}}">
     </div>
   </div>
+  {{#if availablerooms}}
   <div class="box-label">Temperatures</div>
   <div class="box">
     {{#each availablerooms}}
@@ -61,6 +62,7 @@
     {{/if}}
     {{/each}}
   </div>
+  {{/if}}
   <div class="box-label">Fan</div>
   <div class="box fan">
     <select>
@@ -71,6 +73,7 @@
       <option value="100" {{#if (eq fan 100)}}selected{{/if}}>High</option>
     </select>
   </div>
+  {{#if availablerooms}}
   <div class="box-label">Trigger</div>
   <div class="box trigger">
     <select>
@@ -82,4 +85,5 @@
       {{/each}}
     </select>
   </div>
+  {{/if}}
 </div>
