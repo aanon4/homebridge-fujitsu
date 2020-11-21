@@ -15,10 +15,16 @@ body {
   justify-content: center;
   max-width: 850px;
 }
-
+.thermostat .room-temp {
+  position: absolute;
+  width: 300px;
+  margin-top: 25px;
+  font-size: 16px;
+  text-align: center;
+}
 .thermostat .small-temp {
   position: relative;
-  padding-left: 170px;
+  padding-left: 180px;
   text-align: center;
 }
 .thermostat .feelslike {
@@ -46,13 +52,13 @@ body {
   border-color: rgb(192, 61, 37);
 }
 .thermostat .low {
-  bottom: 40px;
+  bottom: 30px;
   color: rgb(52, 119, 148);
   border-color: rgb(52, 119, 148);
 }
 .thermostat .current {
   position: relative;
-  top: -6px;
+  top: 0px;
   font-size: 100px;
   line-height: 100px;
   text-align: center;
@@ -60,7 +66,7 @@ body {
 }
 .thermostat .heating {
   position: relative;
-  bottom: 50px;
+  bottom: 35px;
   font-size: 18px;
   text-align: center;
 }
