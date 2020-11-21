@@ -152,8 +152,8 @@ class Thermostat {
 
         ctx.smart.setReferenceTemperatures(remote.currentTemperatureC, remote.targetTemperatureC);
         const program = ctx.smart.getProgram();
-        console.log('remote', remote);
-        console.log('program', program);
+        //console.log('remote', remote);
+        //console.log('program', program);
 
         const hkstate = {
           targetMode: ctx.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value,
