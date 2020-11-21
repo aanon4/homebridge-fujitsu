@@ -1,5 +1,5 @@
 # homebridge-fujitsu-smart
-## Homebridge plug in for Fujistu Mini Split with smart temperature support using Xiaomi sensors.
+## Homebridge plug in for Fujistu Mini Split with web-based scheduling UI and smart temperature support.
 
 This started life as an extension to the current mini-split module but with fan control, and rapidly got out of hand ...
 
@@ -58,7 +58,8 @@ This started life as an extension to the current mini-split module but with fan 
 | `password` | `FGLair` Password |
 | `model` _(optional)_ | Appears under "Model" for your accessory in the Home app |
 | `region` _(optional)_ | Region for thermostat, change for China & E.U. (Default: "us") |
-| `smart` _(optional)_ | Sensor configuration to allow smart adaption of thermostat temperature. |
+| `smart` _(optional)_ | Smart configuration. |
+| `smart.miio` _(optional)_ | Use multiple temperature and occupancy sensors to adapted thermostat. Currently supports the `Mi Home` platform |
 | `smart.miio.username` | `Mi Home` Username |
 | `smart.miio.password` | `Mi Home` Password |
 | `smart.miio.region` _(optional)_ | Will default to `cn` which supports the latest range of sensor types, but can be set to other regions |
