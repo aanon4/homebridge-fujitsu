@@ -90,138 +90,143 @@ class Thermostat {
   }
 
   updateAll(ctx) {
-    ctx.api.getDeviceProp(ctx.serial, (err, properties) => {
+    // Looks like the 'get_prop' call is necessary to update the current temperature
+    ctx.api.setDeviceProp(ctx.serial, 'get_prop', 1, () => {
+      ctx.api.getDeviceProp(ctx.serial, (err, properties) => {
 
-      if (err) {
-        ctx.log("Update Properties: " + err.message);
-        return;
-      }
-      //ctx.log(JSON.stringify(properties, null, 2));
-
-      const remote = {
-        targetHeatingCoolingState: null,
-        targetTemperatureC: null,
-        targetFanSpeed: null,
-        targetFanState: null,
-        currentTemperatureC: null
-      };
-      properties.forEach(prop => {
-        switch (prop.property.name) {
-          case 'adjust_temperature':
-            remote.targetTemperatureC = parseInt(prop.property.value) / 10;
-            break;
-          case 'operation_mode':
-            remote.targetHeatingCoolingState = FJ2HK[prop.property.value];
-            break;
-          case 'fan_speed':
-            switch (parseInt(prop.property.value)) {
-              case FJ_FAN_QUIET:
-                remote.targetFanSpeed = HK_FAN_QUIET;
-                remote.targetFanState = HK_FAN_MANUAL;
-                break;
-              case FJ_FAN_LOW:
-                remote.targetFanSpeed = HK_FAN_LOW;
-                remote.targetFanState = HK_FAN_MANUAL;
-                break;
-              case FJ_FAN_MEDIUM:
-                remote.targetFanSpeed = HK_FAN_MEDIUM;
-                remote.targetFanState = HK_FAN_MANUAL;
-                break;
-              case FJ_FAN_HIGH:
-                remote.targetFanSpeed = HK_FAN_HIGH;
-                remote.targetFanState = HK_FAN_MANUAL;
-                break;
-              case FJ_FAN_AUTO:
-                remote.targetFanSpeed = HK_FAN_QUIET;
-                remote.targetFanState = HK_FAN_AUTO;
-                break;
-              default:
-                break;
-            }
-            break;
-          case 'display_temperature':
-            remote.currentTemperatureC = parseInt(prop.property.value) / 100 - 50;
-            break;
-          default:
-            break;
+        if (err) {
+          ctx.log("Update Properties: " + err.message);
+          return;
         }
-      });
-      //console.log(remote);
+        //ctx.log(JSON.stringify(properties, null, 2));
 
-      ctx.smart.setReferenceTemperatures(remote.currentTemperatureC, remote.targetTemperatureC);
-      const program = ctx.smart.getProgram();
-
-      const hkstate = {
-        targetMode: ctx.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value,
-        targetTemperatureC: ctx.service.getCharacteristic(Characteristic.TargetTemperature).value,
-        targetFanState: ctx.fan.getCharacteristic(Characteristic.TargetFanState).value,
-        targetFanSpeed: ctx.fan.getCharacteristic(Characteristic.RotationSpeed).value
-      };
-
-      // Without a target tempoerature, we don't make any changes
-      if (program.targetTemperatureC !== null) {
-
-        if (Date.now() < program.pauseUntil) {
-          ctx.log('*** program on hold');
-          // Program on hold. Update local characteristics only
-          ctx.service.updateCharacteristic(Characteristic.TargetTemperature, remote.targetTemperatureC);
-          ctx.service.updateCharacteristic(Characteristic.TargetHeatingCoolingState, remote.targetHeatingCoolingState);
-          ctx.fan.updateCharacteristic(Characteristic.RotationSpeed, remote.targetFanSpeed);
-          ctx.fan.updateCharacteristic(Characteristic.TargetFanState, remote.targetFanState);
-        }
-        // If 'pauseUntil' is zero, we have have set a program. If that's not what we read back then a remote override
-        // was made and we should honor it for a given hold time.
-        else if (program.pauseUntil === 0 &&
-          (hkstate.targetMode != remote.targetHeatingCoolingState ||
-           hkstate.targetTemperatureC != remote.targetTemperatureC ||
-           hkstate.targetFanState != remote.targetFanState ||
-           (hkstate.targetFanState === HK_FAN_MANUAL && ctx.service.getCharacteristic(Characteristic.RotationSpeed).value != remote.targetFanSpeed))) {
-            // Change made remotely - put program on hold
-            ctx.log('*** pausing program');
-            ctx.smart.pauseProgram();
-        }
-        else {
-          // Update thermostat from program (use setCharacteristic so we call the relevant 'set' listeners)
-          if (program.targetTemperatureC != hkstate.targetTemperatureC) {
-            ctx.service.setCharacteristic(Characteristic.TargetTemperature, program.targetTemperatureC);
+        const remote = {
+          targetHeatingCoolingState: null,
+          targetTemperatureC: null,
+          targetFanSpeed: null,
+          targetFanState: null,
+          currentTemperatureC: null
+        };
+        properties.forEach(prop => {
+          switch (prop.property.name) {
+            case 'adjust_temperature':
+              remote.targetTemperatureC = parseInt(prop.property.value) / 10;
+              break;
+            case 'operation_mode':
+              remote.targetHeatingCoolingState = FJ2HK[prop.property.value];
+              break;
+            case 'fan_speed':
+              switch (parseInt(prop.property.value)) {
+                case FJ_FAN_QUIET:
+                  remote.targetFanSpeed = HK_FAN_QUIET;
+                  remote.targetFanState = HK_FAN_MANUAL;
+                  break;
+                case FJ_FAN_LOW:
+                  remote.targetFanSpeed = HK_FAN_LOW;
+                  remote.targetFanState = HK_FAN_MANUAL;
+                  break;
+                case FJ_FAN_MEDIUM:
+                  remote.targetFanSpeed = HK_FAN_MEDIUM;
+                  remote.targetFanState = HK_FAN_MANUAL;
+                  break;
+                case FJ_FAN_HIGH:
+                  remote.targetFanSpeed = HK_FAN_HIGH;
+                  remote.targetFanState = HK_FAN_MANUAL;
+                  break;
+                case FJ_FAN_AUTO:
+                  remote.targetFanSpeed = HK_FAN_QUIET;
+                  remote.targetFanState = HK_FAN_AUTO;
+                  break;
+                default:
+                  break;
+              }
+              break;
+            case 'display_temperature':
+              remote.currentTemperatureC = parseInt(prop.property.value) / 100 - 50;
+              break;
+            default:
+              break;
           }
-          if (program.targetMode != hkstate.targetMode) {
-            ctx.service.setCharacteristic(Characteristic.TargetHeatingCoolingState, program.targetMode);
-          }
+        });
+        //console.log(remote);
 
-          if (program.fanSpeed === 'auto') {
-            if (hkstate.targetFanState !== HK_FAN_AUTO) {
-              ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_AUTO);
-            }
+        ctx.smart.setReferenceTemperatures(remote.currentTemperatureC, remote.targetTemperatureC);
+        const program = ctx.smart.getProgram();
+        console.log('remote', remote);
+        console.log('program', program);
+
+        const hkstate = {
+          targetMode: ctx.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value,
+          targetTemperatureC: ctx.service.getCharacteristic(Characteristic.TargetTemperature).value,
+          targetFanState: ctx.fan.getCharacteristic(Characteristic.TargetFanState).value,
+          targetFanSpeed: ctx.fan.getCharacteristic(Characteristic.RotationSpeed).value
+        };
+
+        // Without a target tempoerature, we don't make any changes
+        if (program.targetTemperatureC !== null) {
+
+          if (Date.now() < program.pauseUntil) {
+            ctx.log('*** program on hold');
+            // Program on hold. Update local characteristics only
+            ctx.service.updateCharacteristic(Characteristic.TargetTemperature, remote.targetTemperatureC);
+            ctx.service.updateCharacteristic(Characteristic.TargetHeatingCoolingState, remote.targetHeatingCoolingState);
+            ctx.fan.updateCharacteristic(Characteristic.RotationSpeed, remote.targetFanSpeed);
+            ctx.fan.updateCharacteristic(Characteristic.TargetFanState, remote.targetFanState);
+          }
+          // If 'pauseUntil' is zero, we have have set a program. If that's not what we read back then a remote override
+          // was made and we should honor it for a given hold time.
+          else if (program.pauseUntil === 0 &&
+            (hkstate.targetMode != remote.targetHeatingCoolingState ||
+            hkstate.targetTemperatureC != remote.targetTemperatureC ||
+            hkstate.targetFanState != remote.targetFanState ||
+            (hkstate.targetFanState === HK_FAN_MANUAL && ctx.service.getCharacteristic(Characteristic.RotationSpeed).value != remote.targetFanSpeed))) {
+              // Change made remotely - put program on hold
+              ctx.log('*** pausing program');
+              ctx.smart.pauseProgram();
           }
           else {
-            if (hkstate.targetFanState !== HK_FAN_MANUAL) {
-              ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_MANUAL);
+            // Update thermostat from program (use setCharacteristic so we call the relevant 'set' listeners)
+            if (program.targetTemperatureC != hkstate.targetTemperatureC) {
+              ctx.service.setCharacteristic(Characteristic.TargetTemperature, program.targetTemperatureC);
             }
-            if (hkstate.targetFanSpeed !== program.fanSpeed) {
-              ctx.fan.setCharacteristic(Characteristic.RotationSpeed, program.fanSpeed);
+            if (program.targetMode != hkstate.targetMode) {
+              ctx.service.setCharacteristic(Characteristic.TargetHeatingCoolingState, program.targetMode);
             }
+
+            if (program.fanSpeed === 'auto') {
+              if (hkstate.targetFanState !== HK_FAN_AUTO) {
+                ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_AUTO);
+              }
+            }
+            else {
+              if (hkstate.targetFanState !== HK_FAN_MANUAL) {
+                ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_MANUAL);
+              }
+              if (hkstate.targetFanSpeed !== program.fanSpeed) {
+                ctx.fan.setCharacteristic(Characteristic.RotationSpeed, program.fanSpeed);
+              }
+            }
+
+            // Reset 'pauseUntil'. This indicates we have set a program and will allow us to check for remote overrides.
+            ctx.smart.resumeProgram(0);
+            ctx.log('*** setting program');
           }
-
-          // Reset 'pauseUntil'. This indicates we have set a program and will allow us to check for remote overrides.
-          ctx.smart.resumeProgram(0);
-          ctx.log('*** setting program');
         }
-      }
-      else {
-        ctx.log('*** no change');
-      }
+        else {
+          ctx.log('*** no change');
+        }
 
-      ctx.service.updateCharacteristic(Characteristic.CurrentHeatingCoolingState, remote.targetHeatingCoolingState);
-      if (program.currentTemperatureC === null) {
-        // If we don't know the current temperature (no sensors), we just have to use the thermostat current temperature.
-        ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, remote.currentTemperatureC);
-      }
-      else {
-        ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, program.currentTemperatureC);
-      }
+        ctx.service.updateCharacteristic(Characteristic.CurrentHeatingCoolingState, remote.targetHeatingCoolingState);
+        if (program.currentTemperatureC === null) {
+          // If we don't know the current temperature (no sensors), we just have to use the thermostat current temperature.
+          ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, remote.currentTemperatureC);
+        }
+        else {
+          ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, program.currentTemperatureC);
+        }
 
-      ctx.log("[" + ctx.serial + "] temp: " + remote.targetTemperatureC + "C, mode: " + remote.targetHeatingCoolingState);
+        ctx.log("[" + ctx.serial + "] temp: " + remote.targetTemperatureC + "C, mode: " + remote.targetHeatingCoolingState);
+      });
     });
   }
 
