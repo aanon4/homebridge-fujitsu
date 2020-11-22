@@ -255,7 +255,6 @@ class Smart {
         end = i;
       }
     }
-    console.log('start', start, schedule.length);
 
     // Walk backwards from this point to find the exact match based on looping around the schedule list and handle triggers
     let pos = start - 1;
@@ -264,7 +263,6 @@ class Smart {
       weektime += 7 * 24 * 60;
     }
     for (;;) {
-      console.log('pos', pos);
       const sched = schedule[pos];
       if (weektime >= sched.weektime) {
         if (sched.trigger) {
