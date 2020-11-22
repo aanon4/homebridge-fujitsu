@@ -236,7 +236,7 @@ class Smart {
   _getSchedule() {
     this.log.debug('_getSchedule:');
     const now = new Date();
-    const weektime = (now.getDay() * 24 + now.getHours()) * 60 + now.getMinutes();
+    let weektime = (now.getDay() * 24 + now.getHours()) * 60 + now.getMinutes();
 
     const schedule = this.schedules[this.selectedSchedule];
     if (!schedule.length) {
@@ -255,10 +255,16 @@ class Smart {
         end = i;
       }
     }
+    console.log('start', start, schedule.length);
 
     // Walk backwards from this point to find the exact match based on looping around the schedule list and handle triggers
-    let pos = (schedule.length + start - 1) % schedule.length;
+    let pos = start - 1;
+    if (pos < 0) {
+      pos += schedule.length;
+      weektime += 7 * 24 * 60;
+    }
     for (;;) {
+      console.log('pos', pos);
       const sched = schedule[pos];
       if (weektime >= sched.weektime) {
         if (sched.trigger) {
@@ -287,11 +293,15 @@ class Smart {
           return sched;
         }
       }
-      pos = (schedule.length + pos - 1) % schedule.length;
       if (pos === start) {
         // No schedule to run
         this.log.debug('_getSchedule: program: none');
         return null;
+      }
+      pos--;
+      if (pos < 0) {
+        pos += schedule.length;
+        weektime += 7 * 24 * 60;
       }
     }
   }
