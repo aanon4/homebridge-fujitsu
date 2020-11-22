@@ -15,7 +15,6 @@ class Smart {
     this.sensors = null;
     this.poller = null;
     this.feelsLike = false;
-    this.holdTime = 0;
     this.unit = 'c';
     this.awaySchedule = null;
     this.away = null
@@ -29,8 +28,9 @@ class Smart {
       adjustedLowTempC: null,
       adjustedHighTempC: null,
       fanSpeed: 'auto',
-      pauseUntil: Date.now()
+      program: {}
     };
+    this.hold = {};
     this.referenceTemperature = null;
     this.remoteTargetTemperatureC = null;
     this.onUpdateCallback = null;
@@ -41,7 +41,6 @@ class Smart {
     this.hbapi = hbapi;
     this.stateFile = Path.join(hbapi.user.persistPath(), 'smart-state.json');
     this.feelsLike = config.feelslike || false;
-    this.holdTime = (config.hold || 60) * 60 * 1000;
     this.unit = (config.unit || 'c').toLowerCase();
     this.currentProgramUntil = 0;
     this.onUpdateCallback = onUpdate;
@@ -138,6 +137,7 @@ class Smart {
     // with the sensors.
     this.currentProgram.currentTemperatureC = this.referenceTemperature;
     const program = this._getSchedule();
+    this.currentProgram.program = program;
     if (this.referenceTemperature !== null && program && (program.low !== null || program.high !== null)) {
 
       adjustedLowTempC = program.low;
@@ -463,12 +463,12 @@ class Smart {
   }
 
   pauseProgram() {
-    this.currentProgram.pauseUntil = Date.now() + this.holdTime;
+    this.hold = this.currentProgram.program;
     Bus.emit('smart.program.update', this.currentProgram);
   }
 
-  resumeProgram(when) {
-    this.currentProgram.pauseUntil = when;
+  resumeProgram(program) {
+    this.hold = program || null;
     Bus.emit('smart.program.update', this.currentProgram);
   }
 

@@ -7,8 +7,6 @@
 // (c) 2020 Ryan Beggs, MIT License
 //
 
-const { calcTTL } = require('node-persist');
-
 let Service;
 let Characteristic;
 let HbAPI;
@@ -165,7 +163,7 @@ class Thermostat {
         // Without a target tempoerature, we don't make any changes
         if (program.targetTemperatureC !== null) {
 
-          if (Date.now() < program.pauseUntil) {
+          if (ctx.smart.hold === program.program) {
             ctx.log('*** program on hold');
             // Program on hold. Update local characteristics only
             ctx.service.updateCharacteristic(Characteristic.TargetTemperature, remote.targetTemperatureC);
@@ -173,9 +171,9 @@ class Thermostat {
             ctx.fan.updateCharacteristic(Characteristic.RotationSpeed, remote.targetFanSpeed);
             ctx.fan.updateCharacteristic(Characteristic.TargetFanState, remote.targetFanState);
           }
-          // If 'pauseUntil' is zero, we have have set a program. If that's not what we read back then a remote override
+          // If 'hold' is null, we have set a program. If that's not what we read back then a remote override
           // was made and we should honor it for a given hold time.
-          else if (program.pauseUntil === 0 &&
+          else if (ctx.smart.hold === null &&
             (hkstate.targetMode != remote.targetHeatingCoolingState ||
             hkstate.targetTemperatureC != remote.targetTemperatureC ||
             hkstate.targetFanState != remote.targetFanState ||
@@ -208,7 +206,7 @@ class Thermostat {
             }
 
             // Reset 'pauseUntil'. This indicates we have set a program and will allow us to check for remote overrides.
-            ctx.smart.resumeProgram(0);
+            ctx.smart.resumeProgram();
             ctx.log('*** setting program');
           }
         }

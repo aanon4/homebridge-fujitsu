@@ -153,7 +153,7 @@ class Main extends Base {
   }
 
   async 'schedule.resume' (msg) {
-    this.smart.resumeProgram(Date.now());
+    this.smart.resumeProgram({});
   }
 
   _smart2visual(schedule) {

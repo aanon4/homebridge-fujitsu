@@ -29,7 +29,6 @@ This started life as an extension to the current mini-split module but with fan 
                 "region": "cn"
             },
             "feelslike": true,
-            "hold": 60,
             "unit": "f",
             "schedule": [{
                 "day": "Any",
@@ -64,7 +63,6 @@ This started life as an extension to the current mini-split module but with fan 
 | `smart.miio.password` | `Mi Home` Password |
 | `smart.miio.region` _(optional)_ | Will default to `cn` which supports the latest range of sensor types, but can be set to other regions |
 | `smart.feeslike` _(optional)_ | If `true` the temperatures will be adjusted based on the humidity, to better refect the temperatures rooms feel |
-| `smart.hold` _(optional)_ | Number of minutes (Default: 60 mins.) to hold the temperature without adjustment if changed externally (e.g. on the wall thermostat)
 | `smart.unit` _(optional)_ | The units (C or F) for the low and high temperatures in the schedule (Default: C) |
 | `smart.schedule` _(optional)_ | If present, zero or more schedule entries describing how to control the HVAC and when room sensors are important. If not present, a web UI is started to allow visual configuration |
 | `smart.schedule.day` | A day `(Sun,Mon,Tue,Wed,Thu,Fri,Sat)` or a series of days `(Mon-Thu)` or `Any` specifying which day this schedule applies |
