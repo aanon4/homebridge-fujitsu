@@ -205,7 +205,7 @@ class Thermostat {
               }
             }
 
-            // Reset 'pauseUntil'. This indicates we have set a program and will allow us to check for remote overrides.
+            // Reset 'hold'. This indicates we have set a program and will allow us to check for remote overrides.
             ctx.smart.resumeProgram();
             ctx.log('*** setting program');
           }
