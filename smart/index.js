@@ -236,7 +236,7 @@ class Smart {
   _getSchedule() {
     this.log.debug('_getSchedule:');
     const now = new Date();
-    let weektime = (now.getDay() * 24 + now.getHours()) * 60 + now.getMinutes();
+    const weektime = (now.getDay() * 24 + now.getHours()) * 60 + now.getMinutes();
 
     const schedule = this.schedules[this.selectedSchedule];
     if (!schedule.length) {
@@ -256,51 +256,41 @@ class Smart {
       }
     }
 
-    // Walk backwards from this point to find the exact match based on looping around the schedule list and handle triggers
-    let pos = start - 1;
-    if (pos < 0) {
-      pos += schedule.length;
-      weektime += 7 * 24 * 60;
-    }
+    // Walk backwards from this point to find a match (with optional triggers)
+    let pos = (start + schedule.length - 1) % schedule.length;
     for (;;) {
       const sched = schedule[pos];
-      if (weektime >= sched.weektime) {
-        if (sched.trigger) {
-          // Clear trigger which is > 24 hours old
-          if (sched._triggered && now - sched._triggered > 24 * 60 * 60 * 1000) {
-            delete sched._triggered;
-          }
-          if (!sched._triggered) {
-            // Check to see if new trigger has happened
-            sched.trigger.forEach(trigger => {
-              const device = this.devices[trigger.room];
-              if (device) {
-                if (device.motion && device.motion.online && device.motion.motion) {
-                  sched._triggered = now;
-                }
-                if (device.magnet && device.magnet.online && (device.magnet.open || device.magnet.close)) {
-                  sched._triggered = now;
-                }
+      if (sched.trigger) {
+        // Clear trigger which is > 24 hours old
+        if (sched._triggered && now - sched._triggered > 24 * 60 * 60 * 1000) {
+          delete sched._triggered;
+        }
+        if (!sched._triggered) {
+          // Check to see if new trigger has happened
+          sched.trigger.forEach(trigger => {
+            const device = this.devices[trigger.room];
+            if (device) {
+              if (device.motion && device.motion.online && device.motion.motion) {
+                sched._triggered = now;
               }
-            });
-          }
+              if (device.magnet && device.magnet.online && (device.magnet.open || device.magnet.close)) {
+                sched._triggered = now;
+              }
+            }
+          });
         }
-        // Return schedule which has been triggered or requires no trigger
-        if (!sched.trigger || sched._triggered) {
-          this.log.debug('_getSchedule: program:', sched);
-          return sched;
-        }
+      }
+      // Return schedule which has been triggered or requires no trigger
+      if (!sched.trigger || sched._triggered) {
+        this.log.debug('_getSchedule: program:', sched);
+        return sched;
       }
       if (pos === start) {
         // No schedule to run
         this.log.debug('_getSchedule: program: none');
         return null;
       }
-      pos--;
-      if (pos < 0) {
-        pos += schedule.length;
-        weektime += 7 * 24 * 60;
-      }
+      pos = (pos + schedule.length - 1) % schedule.length;
     }
   }
 
