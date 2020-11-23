@@ -1,18 +1,21 @@
 <div class="group">
   <div>Schedules</div>
-<a href="#" onclick="send('schedule.select', { schedule: 'normal' });">
-  <li>Normal{{#if (eq selected "normal")}} &checkmark;{{/if}}</li>
-</a>
-<a href="#" onclick="send('schedule.select', { schedule: 'vacation' });">
-  <li>Vacation{{#if (eq selected "vacation")}} &checkmark;{{/if}}</li>
-</a>
-<a href="#" onclick="send('schedule.select', { schedule: 'away' });">
-  <li>Away{{#if (eq selected "away")}} &checkmark;{{/if}}</li>
-</a>
+  <a href="#" onclick="send('schedule.select', { schedule: 'normal' });">
+    <li>Normal{{#if (eq selected "normal")}} &checkmark;{{/if}}</li>
+  </a>
+  <a href="#" onclick="send('schedule.select', { schedule: 'vacation' });">
+    <li>Vacation{{#if (eq selected "vacation")}} &checkmark;{{/if}}</li>
+  </a>
+  <a href="#" onclick="send('schedule.select', { schedule: 'away' });">
+    <li>Away{{#if (eq selected "away")}} &checkmark;{{/if}}</li>
+  </a>
 </div>
-<a href="#" onclick="send('schedule.resume');">
-  <li>Resume Program</li>
-</a>
+<div class="group">
+  <div>Program</div>
+  <a href="#" onclick="send('schedule.resume');">
+    <li>Resume</li>
+  </a>
+</div>
 <a href="https://github.com/aanon4/homebridge-fujitsu" target="_blank">
   <li>About</li>
 </a>

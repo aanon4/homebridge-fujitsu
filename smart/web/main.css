@@ -356,7 +356,7 @@ nav {
   height: 100%;
   margin: -100px 0 0 -50px;
   padding: 50px;
-  padding-top: 125px;
+  padding-top: 110px;
   box-sizing: content-box;
   background: #ededed;
   list-style-type: none;
@@ -370,7 +370,7 @@ nav {
 #menu li
 {
   padding: 10px 0;
-  font-size: 22px;
+  font-size: 20px;
 }
 /*
  * And let's slide it in from the left
@@ -380,8 +380,9 @@ nav {
   transform: none;
 }
 #menu .group {
+  margin-top: 20px;
   color: #e0e0e0;
-  font-size: 22px;
+  font-size: 20px;
 }
 #menu .group > div {
   margin-bottom: 10px;
