@@ -45,15 +45,9 @@ class Smart {
     this.currentProgramUntil = 0;
     this.onUpdateCallback = onUpdate;
 
-    if (config.schedule) {
-      this.setSchedule('normal', this.buildSchedule(config.schedule));
-      this.setScheduleTo('normal');
-    }
-    else {
-      this.loadState();
-      this.web = require('./web/server');
-      this.web.start(this, config);
-    }
+    this.loadState();
+    this.web = require('./web/server');
+    this.web.start(this, config);
 
     if (config.miio) {
       const miio = require('./sensors/miio');
@@ -392,66 +386,6 @@ class Smart {
     else {
       return undefined;
     }
-  }
-
-  buildSchedule(schedule) {
-    this.log.debug('buildSchedule:', schedule);
-
-    // Format: eg. 'Mon', 'Mon-Wed', 'Fri-Mon', 'Any'
-    const map = [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ];
-    function parseDayOfWeek(dows) {
-      let days = dows.split('-');
-      if (days.length === 1) {
-        days = [ days[0], days[0] ];
-      }
-      let from = map.indexOf(days[0]);
-      let to = map.indexOf(days[1]);
-      if (to === -1 || from === -1) {
-        if (dows !== 'Any') {
-          return undefined;
-        }
-        from = 0;
-        to = 6;
-      }
-      if (to < from) {
-        to += 7;
-      }
-      const d = [];
-      for (let i = from; i <= to; i++) {
-        d.push(i % 7);
-      }
-      return d;
-    }
-
-    const toC = (v) => {
-      return Math.round(Feels.tempConvert(parseFloat(v), this.unit, 'c') * 2) / 2;
-    }
-
-    const computed = [];
-    (schedule || []).forEach(sched => {
-      const time = this._parseTime(sched.time);
-      const days = this._parseDayOfWeek(sched.day);
-      const low = toC(sched.low);
-      const high = toC(sched.high);
-      if (time !== undefined && days !== undefined) {
-        days.forEach(day => {
-          computed.push({
-            weektime: day * 24 * 60 + time,
-            low: low,
-            high: high,
-            trigger: sched.trigger,
-            fan: sched.fan || 'auto',
-            rooms: sched.rooms
-          });
-        });
-      }
-      else {
-        this.log.debug('buildSchedule: bad schedule:', sched);
-      }
-    });
-    this.log.debug('buildSchedule: result:', computed);
-
-    return computed;
   }
 
   getDevices() {

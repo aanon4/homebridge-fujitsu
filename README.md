@@ -21,7 +21,6 @@ This started life as an extension to the current mini-split module but with fan 
         "name": "Fujitsu Mini Spit",
         "username": "FGLAIR USERNAME",
         "password": "FGLAIR PASSWORD",
-        "interval": 30,
         "smart": {
             "miio": {
                 "username": "MII USERNAME",
@@ -30,16 +29,6 @@ This started life as an extension to the current mini-split module but with fan 
             },
             "feelslike": true,
             "unit": "f",
-            "schedule": [{
-                "day": "Any",
-                "time": "12:00am",
-                "low": 67,
-                "high": 75,
-                "rooms": {
-                    "THERMOSTAT ROOM":  { "occupied":  50, "empty":  0 },
-                    "Kitchen":          { "occupied": 100, "empty":  0 }
-                }
-            }],
             "portnr": 8080,
             "weather": {
                 "key": "OPENWEATHERMAPAPI KEY",
@@ -64,18 +53,6 @@ This started life as an extension to the current mini-split module but with fan 
 | `smart.miio.region` _(optional)_ | Will default to `cn` which supports the latest range of sensor types, but can be set to other regions |
 | `smart.feeslike` _(optional)_ | If `true` the temperatures will be adjusted based on the humidity, to better refect the temperatures rooms feel |
 | `smart.unit` _(optional)_ | The units (C or F) for the low and high temperatures in the schedule (Default: C) |
-| `smart.schedule` _(optional)_ | If present, zero or more schedule entries describing how to control the HVAC and when room sensors are important. If not present, a web UI is started to allow visual configuration |
-| `smart.schedule.day` | A day `(Sun,Mon,Tue,Wed,Thu,Fri,Sat)` or a series of days `(Mon-Thu)` or `Any` specifying which day this schedule applies |
-| `smart.schedule.time` | A time `(e.g 1:00pm,12:13am,11:59pm)` when this schedule starts. It will remain active until the next schedule entry |
-| `smart.schedule.low` | The lowest the temperature should be allowed to go (in `unit`s) |
-| `smart.schedule.high` | The highest the temperature should be allowed to go (in `unit`s)  |
-| `smart.schedule.trigger` _(optional_) | An array of triggers, one of which must occur before this schedule is valid |
-| `smart.schedule.trigger.type` _(optional)_ | The trigger type (Default: motion)
-| `smart.schedule.trigger.room` | The room containing the motion trigger |
-| `smart.schedule.fan` _(optional)_ | Fan speed (1-100) or auto (Default: 'auto') |
-| `smart.schedule.rooms` | An object of rooms, where the key is the room name. The room name should match the beginning name of the sensor `(e.g. Dining Room` has sensors `Dining Room Temperature` and `Dining Room Movement)` |
-| `smart.schedule.rooms.ROOM.occupied` | A weight from `0-100` specifying how important this schedule is, higher being more important. This weight is for when the room is occupied (or always if the room has no motion sensor) |
-| `smart.schedule.rooms.ROOM.empty` _(optional)_ | A weight for when the room has been empty for 30 minutes or more |
 | `smart.away` _(optional)_ | Enable auto-away schedule. If no movement is detected then the away schedule can be automatically started |
 | `smart.away.from` _(optional)_ | Start time for when auto-away can be activated (Default: 6am) |
 | `smart.away.to` _(optional)_ | End time for when auto-away can be activated (Default: 9pm) |
