@@ -53,7 +53,6 @@ This started life as an extension to the current mini-split module but with fan 
 | `smart.miio.region` _(optional)_ | Will default to `cn` which supports the latest range of sensor types, but can be set to other regions |
 | `smart.feeslike` _(optional)_ | If `true` the temperatures will be adjusted based on the humidity, to better refect the temperatures rooms feel |
 | `smart.unit` _(optional)_ | The units (C or F) for the low and high temperatures in the schedule (Default: C) |
-| `smart.away` _(optional)_ | Enable auto-away schedule. If no movement is detected then the away schedule can be automatically started |
 | `smart.away.from` _(optional)_ | Start time for when auto-away can be activated (Default: 6am) |
 | `smart.away.to` _(optional)_ | End time for when auto-away can be activated (Default: 9pm) |
 | `smart.away.wait` _(optional)_ | How long since movement was detected before the away schedule is activated (Default: 60 minutes) |
