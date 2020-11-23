@@ -286,17 +286,28 @@ class Smart {
       return;
     }
 
-    let motion = false;
+    let motion = null;
     for (let name in this.devices) {
       const device = this.devices[name];
-      if (device.motion && device.motion.online && device.motion.motion) {
-        motion = true;
-        break;
+      if (device.motion && device.motion.online) {
+        if (device.motion.motion) {
+          motion = true;
+          break;
+        }
+        motion = false;
       }
-      if (device.magnet && device.magnet.online && (device.magnet.open || device.magnet.close)) {
-        motion = true;
-        break;
+      if (device.magnet && device.magnet.online) {
+        if (device.magnet.open || device.magnet.close) {
+          motion = true;
+          break;
+        }
+        motion = false;
       }
+    }
+
+    if (motion === null) {
+      // No sensors detected so dont make any changes
+      return;
     }
 
     // For away to be triggered we must have seen motion inside the valid period, that motion to
