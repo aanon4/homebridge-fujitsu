@@ -97,6 +97,7 @@ class Main extends Base {
             p.targetMode === 1 ? 'Heat' :
             p.targetMode === 2 ? 'Cool' : 'Off'
     };
+    this.state.autoaway = this.smart.awaySchedule.enable;
     const w = this.smart.weather && this.smart.weather.weather;
     if (w) {
       this.state.weather = {
@@ -154,6 +155,13 @@ class Main extends Base {
 
   async 'schedule.resume' (msg) {
     this.smart.resumeProgram({});
+  }
+
+  async 'schedule.autoaway' (msg) {
+    this.smart.setAutoAway(msg.enable);
+    this.state.autoaway = msg.enable;
+    this.updateState();
+    this.html('menu', Template.menu(this.state));
   }
 
   _smart2visual(schedule) {

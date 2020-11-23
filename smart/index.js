@@ -17,8 +17,10 @@ class Smart {
     this.feelsLike = false;
     this.unit = 'c';
     this.awaySchedule = null;
-    this.away = null
-    this.restoreAwaySchedule = null;
+    this.away = {
+      motion: 0,
+      restore: null
+    };
     this.currentProgram = {
       targetMode: MODE_HEAT,
       currentTemperatureC: null,
@@ -45,6 +47,14 @@ class Smart {
     this.currentProgramUntil = 0;
     this.onUpdateCallback = onUpdate;
 
+    const away = config.away || { enable: false };
+    this.awaySchedule = {
+      enable: away.enable,
+      from: this._parseTime(away.from) || 6 * 60,
+      to: this._parseTime(away.to) || 21 * 60,
+      wait: away.wait || 60
+    };
+
     this.loadState();
     this.web = require('./web/server');
     this.web.start(this, config);
@@ -55,26 +65,9 @@ class Smart {
       this.sensors = miio;
     }
 
-    if (config.away) {
-      this.awaySchedule = {
-        valid: [ this._parseTime(config.away.from) || 6 * 60, this._parseTime(config.away.to) || 21 * 60 ],
-        wait: (config.away.wait || 60) * 60 * 1000
-      };
-    }
-
     const poll = () => {
-      if (this.awaySchedule) {
-        this._checkAway();
-        if (this.away && Date.now() - away > this.awaySchedule.wait && this.selectedSchedule !== 'away') {
-          const selected = this.selectedSchedule;
-          this.setScheduleTo('away');
-          this.restoreAwaySchedule = selected;
-        }
-        if (!this.away && this.selectedSchedule === 'away' && this.restoreAwaySchedule) {
-          this.setScheduleTo(this.restoreAwaySchedule);
-        }
-      }
       this._updateSensors().then(() => {
+        this._checkAway();
         this._updateProgram();
         this.onUpdateCallback();
         this.poller = setTimeout(poll, Math.max(0, 60000 - Date.now() % 60000));
@@ -289,6 +282,10 @@ class Smart {
   }
 
   _checkAway() {
+    if (!this.awaySchedule.enable) {
+      return;
+    }
+
     let motion = false;
     for (let name in this.devices) {
       const device = this.devices[name];
@@ -298,17 +295,30 @@ class Smart {
       }
       if (device.magnet && device.magnet.online && (device.magnet.open || device.magnet.close)) {
         motion = true;
+        break;
       }
     }
 
+    // For away to be triggered we must have seen motion inside the valid period, that motion to
+    // have been a specific amount of time ago, and for the time now to also be in the valid period.
+    const now = new Date();
+    const daytime = now.getHours() * 60 + now.getMinutes();
     if (motion) {
-      this.away = null;
+      this.away.motion = daytime;
+      // Not away
+      if (this.selectedSchedule === 'away' && this.awaySchedule.restore) {
+        this.setScheduleTo(this.awaySchedule.restore);
+      }
     }
-    else if (!this.away) {
-      const now = new Date();
-      const daytime = now.getHours() * 60 + now.getMinutes();
-      if (this.awaySchedule.valid.find(period => period[0] <= daytime && period[1] >= daytime)) {
-        this.away = Date.now();
+    else if (this.selectedSchedule !== 'away') {
+      if (daytime - this.away.motion > this.awaySchedule.wait &&
+          this.awaySchedule.from <= this.away.motion && this.awaySchedule.to >= this.away.motion &&
+          this.awaySchedule.from <= daytime && this.awaySchedule.from >= daytime
+      ) {
+        // Away
+        const selected = this.selectedSchedule;
+        this.setScheduleTo('away');
+        this.awaySchedule.restore = selected;
       }
     }
   }
@@ -330,7 +340,7 @@ class Smart {
 
   setScheduleTo(name) {
     this.log.debug('setScheduleTo:', name);
-    this.restoreAwaySchedule = null;
+    this.awaySchedule.restore = null;
     if (this.selectedSchedule !== name && name in this.schedules) {
       this.selectedSchedule = name;
       this.saveState();
@@ -406,6 +416,14 @@ class Smart {
     Bus.emit('smart.program.update', this.currentProgram);
   }
 
+  setAutoAway(enable) {
+    if (this.awaySchedule.enable != enable) {
+      this.awaySchedule.enable = enable;
+      this.saveState();
+      Bus.emit('smart.program.update', this.currentProgram);
+    }
+  }
+
   setReferenceTemperatures(refTemp, remoteTargetTemp) {
     this.remoteTargetTemperatureC = remoteTargetTemp;
     if (refTemp !== this.referenceTemperature) {
@@ -419,6 +437,7 @@ class Smart {
       const info = JSON.parse(FS.readFileSync(this.stateFile, { encoding: 'utf8' }));
       this.selectedSchedule = info.schedule.selected;
       this.schedules = info.schedule.schedules;
+      this.awaySchedule.enable = info.autoaway ? info.autoaway.enable : false;
     }
     catch (_) {
       this.selectedSchedule = 'normal';
@@ -436,6 +455,9 @@ class Smart {
       schedule: {
         selected: this.selectedSchedule,
         schedules: this.schedules
+      },
+      autoaway: {
+        enable: this.awaySchedule.enable
       }
     });
     FS.readFile(this.stateFile, { encoding: 'utf8' }, (e, info) => {

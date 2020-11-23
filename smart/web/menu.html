@@ -15,6 +15,9 @@
   <a href="#" onclick="send('schedule.resume');">
     <li>Resume</li>
   </a>
+  <a href="#" onclick="send('schedule.autoaway', { enable: {{#if autoaway}}false{{else}}true{{/if}} });">
+    <li>Auto Away{{#if autoaway}} &checkmark;{{/if}}</li>
+  </a>
 </div>
 <a href="https://github.com/aanon4/homebridge-fujitsu" target="_blank">
   <li>About</li>
