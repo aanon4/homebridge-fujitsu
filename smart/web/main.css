@@ -118,6 +118,9 @@ body {
   margin-right: 2px;
   border-right: solid 1px grey;
 }
+.slide-container .day {
+  cursor: grab;
+}
 .slide {
   position: relative;
   flex-grow: 1;
@@ -133,6 +136,7 @@ body {
   color: rgb(240, 240, 240);
   border-radius: 25px;
   border: solid 1px rgb(128, 128, 128);
+  cursor: grab;
 }
 .slider-inner {
   height: 100%;
