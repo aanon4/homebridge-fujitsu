@@ -26,6 +26,7 @@ const HK_AUTO = 3;
 const HK_FAN_MANUAL = 0;
 const HK_FAN_AUTO = 1;
 
+const HK_FAN_0 = 0;
 const HK_FAN_QUIET = 10;
 const HK_FAN_LOW = 30;
 const HK_FAN_MEDIUM = 60;
@@ -133,7 +134,7 @@ class Thermostat {
                   remote.targetFanState = HK_FAN_MANUAL;
                   break;
                 case FJ_FAN_AUTO:
-                  remote.targetFanSpeed = HK_FAN_QUIET;
+                  remote.targetFanSpeed = HK_FAN_0;
                   remote.targetFanState = HK_FAN_AUTO;
                   break;
                 default:
@@ -251,7 +252,9 @@ class Thermostat {
 
   setTargetFanState(val, cb) {
     this.log.debug('setTargetFanState', val ? 'automatic' : 'manual');
-    this.smart.pauseProgram();
+    if (this.includeFan) {
+      this.smart.pauseProgram();
+    }
     if (val === HK_FAN_MANUAL) {
       this.setRotationSpeed(this.fan.getCharacteristic(Characteristic.RotationSpeed).value, cb);
     }
@@ -263,8 +266,10 @@ class Thermostat {
 
   setRotationSpeed(val, cb) {
     this.log.debug('setRotationSpeed', val);
-    this.smart.pauseProgram();
-    let fanSpeed = FJ_FAN_AUTO;
+    if (this.includeFan) {
+      this.smart.pauseProgram();
+    }
+    let fanSpeed;
     if (val <= HK_FAN_QUIET) {
       fanSpeed = FJ_FAN_QUIET;
     }
