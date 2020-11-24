@@ -60,7 +60,7 @@ class Thermostat {
     this.userName = config.username || '';
     this.password = config.password || '';
     this.temperatureDisplayUnits = config.temperatureDisplayUnits || 0;
-    this.excludeFan = config.excludeFan || false;
+    this.excludeFan = config.excludefan || false;
 
     this.log.debug(this.name);
     this.service = new Service.Thermostat(this.name);
