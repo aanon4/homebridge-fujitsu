@@ -60,7 +60,7 @@ class Thermostat {
     this.userName = config.username || '';
     this.password = config.password || '';
     this.temperatureDisplayUnits = config.temperatureDisplayUnits || 0;
-    this.excludeFan = config.excludefan || false;
+    this.includeFan = !config.excludefan;
 
     this.log.debug(this.name);
     this.service = new Service.Thermostat(this.name);
@@ -147,19 +147,19 @@ class Thermostat {
               break;
           }
         });
-        //console.log(remote);
 
         ctx.smart.setReferenceTemperatures(remote.currentTemperatureC, remote.targetTemperatureC);
         const program = ctx.smart.getProgram();
-        //console.log('remote', remote);
-        //console.log('program', program);
-
         const hkstate = {
           targetMode: ctx.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value,
           targetTemperatureC: ctx.service.getCharacteristic(Characteristic.TargetTemperature).value,
           targetFanState: ctx.fan.getCharacteristic(Characteristic.TargetFanState).value,
           targetFanSpeed: ctx.fan.getCharacteristic(Characteristic.RotationSpeed).value
         };
+
+        //console.log('remote', remote);
+        //console.log('program', program);
+        //console.log('hk', hkstate);
 
         // Without a target tempoerature, we don't make any changes
         if (program.targetTemperatureC !== null) {
@@ -176,12 +176,12 @@ class Thermostat {
           // was made and we should honor it for a given hold time.
           else if (ctx.smart.hold === null &&
             (hkstate.targetMode != remote.targetHeatingCoolingState ||
-            hkstate.targetTemperatureC != remote.targetTemperatureC ||
-            (!ctx.excludeFan && (hkstate.targetFanState != remote.targetFanState ||
-            (hkstate.targetFanState === HK_FAN_MANUAL && ctx.service.getCharacteristic(Characteristic.RotationSpeed).value != remote.targetFanSpeed))))) {
-              // Change made remotely - put program on hold
-              ctx.log('*** pausing program');
-              ctx.smart.pauseProgram();
+             hkstate.targetTemperatureC != remote.targetTemperatureC ||
+             (ctx.includeFan && (hkstate.targetFanState != remote.targetFanState || (hkstate.targetFanState === HK_FAN_MANUAL && hkstate.targetFanSpeed != remote.targetFanSpeed)))
+          )) {
+            // Change made remotely - put program on hold
+            ctx.log('*** pausing program');
+            ctx.smart.pauseProgram();
           }
           else {
             // Update thermostat from program (use setCharacteristic so we call the relevant 'set' listeners)
@@ -192,18 +192,27 @@ class Thermostat {
               ctx.service.setCharacteristic(Characteristic.TargetHeatingCoolingState, program.targetMode);
             }
 
-            if (program.fanSpeed === 'auto') {
-              if (hkstate.targetFanState !== HK_FAN_AUTO) {
-                ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_AUTO);
+            // Set the fan if we always include it, or if this is a new program
+            if (ctx.includeFan || ctx.smart.hold !== null) {
+              if (program.fanSpeed === 'auto') {
+                if (hkstate.targetFanState !== HK_FAN_AUTO) {
+                  ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_AUTO);
+                }
+              }
+              else {
+                if (hkstate.targetFanState !== HK_FAN_MANUAL) {
+                  ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_MANUAL);
+                }
+                if (hkstate.targetFanSpeed !== program.fanSpeed) {
+                  ctx.fan.setCharacteristic(Characteristic.RotationSpeed, program.fanSpeed);
+                }
               }
             }
+            // Otherwise, just update the local state. This allows the fan to be changed without placing the
+            // current program on hold
             else {
-              if (hkstate.targetFanState !== HK_FAN_MANUAL) {
-                ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_MANUAL);
-              }
-              if (hkstate.targetFanSpeed !== program.fanSpeed) {
-                ctx.fan.setCharacteristic(Characteristic.RotationSpeed, program.fanSpeed);
-              }
+              ctx.fan.updateCharacteristic(Characteristic.RotationSpeed, remote.targetFanSpeed);
+              ctx.fan.updateCharacteristic(Characteristic.TargetFanState, remote.targetFanState);
             }
 
             // Reset 'hold'. This indicates we have set a program and will allow us to check for remote overrides.
@@ -216,13 +225,7 @@ class Thermostat {
         }
 
         ctx.service.updateCharacteristic(Characteristic.CurrentHeatingCoolingState, remote.targetHeatingCoolingState);
-        if (program.currentTemperatureC === null) {
-          // If we don't know the current temperature (no sensors), we just have to use the thermostat current temperature.
-          ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, remote.currentTemperatureC);
-        }
-        else {
-          ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, program.currentTemperatureC);
-        }
+        ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, remote.currentTemperatureC);
 
         ctx.log("[" + ctx.serial + "] temp: " + remote.targetTemperatureC + "C, mode: " + remote.targetHeatingCoolingState);
       });
