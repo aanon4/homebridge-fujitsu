@@ -60,6 +60,7 @@ class Thermostat {
     this.userName = config.username || '';
     this.password = config.password || '';
     this.temperatureDisplayUnits = config.temperatureDisplayUnits || 0;
+    this.excludeFan = config.excludeFan || false;
 
     this.log.debug(this.name);
     this.service = new Service.Thermostat(this.name);
@@ -176,8 +177,8 @@ class Thermostat {
           else if (ctx.smart.hold === null &&
             (hkstate.targetMode != remote.targetHeatingCoolingState ||
             hkstate.targetTemperatureC != remote.targetTemperatureC ||
-            hkstate.targetFanState != remote.targetFanState ||
-            (hkstate.targetFanState === HK_FAN_MANUAL && ctx.service.getCharacteristic(Characteristic.RotationSpeed).value != remote.targetFanSpeed))) {
+            (!ctx.excludeFan && (hkstate.targetFanState != remote.targetFanState ||
+            (hkstate.targetFanState === HK_FAN_MANUAL && ctx.service.getCharacteristic(Characteristic.RotationSpeed).value != remote.targetFanSpeed))))) {
               // Change made remotely - put program on hold
               ctx.log('*** pausing program');
               ctx.smart.pauseProgram();
