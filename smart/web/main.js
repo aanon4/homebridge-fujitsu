@@ -92,7 +92,7 @@ class Main extends Base {
       current: this.toU(p.currentTemperatureC),
       target: this.toU(p.targetTemperatureC),
       remote: this.toU(this.smart.remoteTargetTemperatureC),
-      mode: this.smart.hold === p.program ? 'Hold' :
+      mode: this.smart.hold === p.program ? 'Override' :
             this.smart.restoreAwaySchedule ? 'Away' :
             p.targetMode === 1 ? 'Heat' :
             p.targetMode === 2 ? 'Cool' : 'Off'
