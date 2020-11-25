@@ -283,6 +283,7 @@ class Thermostat {
   }
 
   setDisplayUnits(val, cb) {
+    this.log.debug('setDisplayUnits', val);
     this.temperatureDisplayUnits = val ? UNIT_F : UNIT_C;
     this.smart.unit = this.temperatureDisplayUnits ? 'f' : 'c';
     cb(null);
@@ -303,8 +304,9 @@ class Thermostat {
       .setCharacteristic(Characteristic.Name, this.name);
 
     this.service
-      .setCharacteristic(Characteristic.TemperatureDisplayUnits, this.temperatureDisplayUnits)
-      .on('set', this.setDisplayUnits.bind(this));
+      .getCharacteristic(Characteristic.TemperatureDisplayUnits)
+      .on('set', this.setDisplayUnits.bind(this))
+      .value = this.temperatureDisplayUnits;
 
     this.service
       .getCharacteristic(Characteristic.TargetHeatingCoolingState)
