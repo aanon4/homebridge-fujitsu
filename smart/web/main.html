@@ -9,6 +9,12 @@
     <script src="/js/tippy.js"></script>
     <script src="/js/script.js"></script>
     <script src="/js/time-input-polyfill.js"></script>
+    <script src="/js/dnd-poly.js"></script>
+    <script>
+      if (navigator.maxTouchPoints) {
+        MobileDragDrop.polyfill({ forceApply: true });
+      }
+    </script>
     <title>Smart Thermostat</title>
   </head>
   <body>

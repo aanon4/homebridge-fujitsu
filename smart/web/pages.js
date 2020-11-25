@@ -7,6 +7,7 @@ module.exports = (root, wsroot, smart) => {
   const popper = require.resolve('@popperjs/core');
   const tippy = require.resolve('tippy.js');
   const timepoly = require.resolve('time-input-polyfill');
+  const dnd = require.resolve('mobile-drag-drop');
 
   const main = new Main(smart);
   const pages = {
@@ -17,7 +18,8 @@ module.exports = (root, wsroot, smart) => {
     '/js/popper.js':              { path: Path.resolve(popper, `../../umd/popper.min.js`), type: 'text/javascript' },
     '/js/tippy.js':               { path: Path.resolve(tippy, `../tippy-bundle.umd.min.js`), type: 'text/javascript' },
     '/css/tippy.css':             { path: Path.resolve(tippy, `../tippy.css`), type: 'text/css' },
-    '/js/time-input-polyfill.js': { path: Path.resolve(timepoly, `../dist/time-input-polyfill.min.js`), type: 'text/javascript' }
+    '/js/time-input-polyfill.js': { path: Path.resolve(timepoly, `../dist/time-input-polyfill.min.js`), type: 'text/javascript' },
+    '/js/dnd-poly.js':            { path: Path.resolve(dnd, '../index.js'), type: 'text/javascript' }
   }
 
   if (!process.env.DEBUG) {
