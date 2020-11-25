@@ -48,6 +48,9 @@ const FJ_FAN_AUTO = 4;
 const FJ2HK = { [FJ_OFF]: HK_OFF, [FJ_AUTO]: HK_AUTO, [FJ_COOL]: HK_COOL, [FJ_DRY]: HK_OFF, [FJ_FAN]: HK_OFF, [FJ_HEAT]: HK_HEAT };
 const HK2FJ = { [HK_OFF]: FJ_OFF, [HK_HEAT]: FJ_HEAT, [HK_COOL]: FJ_COOL, [HK_AUTO]: FJ_AUTO };
 
+const UNIT_C = 0;
+const UNIT_F = 1;
+
 class Thermostat {
 
   constructor(log, config) {
@@ -60,7 +63,7 @@ class Thermostat {
     this.region = config.region || 'us'
     this.userName = config.username || '';
     this.password = config.password || '';
-    this.temperatureDisplayUnits = config.temperatureDisplayUnits || 0;
+    this.temperatureDisplayUnits = config.temperatureDisplayUnits ? UNIT_F : UNIT_C;
     this.includeFan = !config.excludefan;
 
     this.log.debug(this.name);
@@ -79,7 +82,7 @@ class Thermostat {
         else {
           this.serial = data[0];
           this.smart = require('./smart');
-          this.smart.start(config.smart, this.log, HbAPI, () => {
+          this.smart.start(config.smart, this.temperatureDisplayUnits, this.log, HbAPI, () => {
             this.updateAll(this);
           }).catch(e => {
             this.log.error(e);
@@ -279,6 +282,12 @@ class Thermostat {
     this.api.setDeviceProp(this.serial, 'fan_speed', fanSpeed, cb);
   }
 
+  setDisplayUnits(val, cb) {
+    this.temperatureDisplayUnits = val ? UNIT_F : UNIT_C;
+    this.smart.unit = this.temperatureDisplayUnits ? 'f' : 'c';
+    cb(null);
+  }
+
   getServices() {
     this.informationService = new Service.AccessoryInformation();
     this.informationService
@@ -294,7 +303,8 @@ class Thermostat {
       .setCharacteristic(Characteristic.Name, this.name);
 
     this.service
-      .setCharacteristic(Characteristic.TemperatureDisplayUnits, this.temperatureDisplayUnits);
+      .setCharacteristic(Characteristic.TemperatureDisplayUnits, this.temperatureDisplayUnits)
+      .on('set', this.setDisplayUnits.bind(this));
 
     this.service
       .getCharacteristic(Characteristic.TargetHeatingCoolingState)

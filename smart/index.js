@@ -38,12 +38,12 @@ class Smart {
     this.onUpdateCallback = null;
   }
 
-  async start(config, log, hbapi, onUpdate) {
+  async start(config, unit, log, hbapi, onUpdate) {
     this.log = log;
     this.hbapi = hbapi;
     this.stateFile = Path.join(hbapi.user.persistPath(), 'smart-state.json');
     this.feelsLike = config.feelslike || false;
-    this.unit = (config.unit || 'c').toLowerCase();
+    this.unit = unit ? 'f' : 'c';
     this.currentProgramUntil = 0;
     this.onUpdateCallback = onUpdate;
 

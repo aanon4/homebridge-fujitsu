@@ -22,6 +22,7 @@ This started life as an extension to the current mini-split module but with fan 
         "name": "Fujitsu Mini Spit",
         "username": "FGLAIR USERNAME",
         "password": "FGLAIR PASSWORD",
+        "temperatureDisplayUnits": 1,
         "smart": {
             "miio": {
                 "username": "MII USERNAME",
@@ -29,7 +30,6 @@ This started life as an extension to the current mini-split module but with fan 
                 "region": "cn"
             },
             "feelslike": true,
-            "unit": "f",
             "portnr": 8080,
             "weather": {
                 "key": "OPENWEATHERMAPAPI KEY",
@@ -47,6 +47,7 @@ This started life as an extension to the current mini-split module but with fan 
 | `password` | `FGLair` Password |
 | `model` _(optional)_ | Appears under "Model" for your accessory in the Home app |
 | `region` _(optional)_ | Region for thermostat, change for China & E.U. (Default: "us") |
+| `temperatureDisplayUnits` _(optional)_ | Celcius (0) or Fahrenheit (1) (Default: 0)
 | `excludeFan` _(optional)_ | Exclude the fan state when overriding program |
 | `smart` _(optional)_ | Smart configuration. |
 | `smart.miio` _(optional)_ | Use multiple temperature and occupancy sensors to adapted thermostat. Currently supports the `Mi Home` platform |
@@ -54,7 +55,6 @@ This started life as an extension to the current mini-split module but with fan 
 | `smart.miio.password` | `Mi Home` Password |
 | `smart.miio.region` _(optional)_ | Will default to `cn` which supports the latest range of sensor types, but can be set to other regions |
 | `smart.feeslike` _(optional)_ | If `true` the temperatures will be adjusted based on the humidity, to better refect the temperatures rooms feel |
-| `smart.unit` _(optional)_ | The units (C or F) for the low and high temperatures in the schedule (Default: C) |
 | `smart.away.from` _(optional)_ | Start time for when auto-away can be activated (Default: 6am) |
 | `smart.away.to` _(optional)_ | End time for when auto-away can be activated (Default: 9pm) |
 | `smart.away.wait` _(optional)_ | How long since movement was detected before the away schedule is activated (Default: 60 minutes) |
