@@ -8,6 +8,10 @@ const MODE_COOL = 2;
 const MODE_HEAT = 1;
 const MODE_AUTO = 3;
 
+const AUTOAWAY_START = 8 * 60; // 8am
+const AUTOAWAY_END = 21 * 60; // 9pm
+const AUTOAWAY_WAIT = 60; // 1 hour
+
 class Smart {
 
   constructor() {
@@ -50,9 +54,9 @@ class Smart {
     const away = config.away || { enable: false };
     this.awaySchedule = {
       enable: away.enable,
-      from: this._parseTime(away.from) || 6 * 60,
-      to: this._parseTime(away.to) || 21 * 60,
-      wait: away.wait || 60
+      from: this._parseTime(away.from) || AUTOAWAY_START,
+      to: this._parseTime(away.to) || AUTOAWAY_END,
+      wait: away.wait || AUTOAWAY_WAIT
     };
 
     this.loadState();
