@@ -1,4 +1,5 @@
 const Base = require('./base');
+const Debounce = require('./debounce');
 const Template = require('./template');
 const Bus = require('../bus');
 
@@ -8,9 +9,9 @@ class Main extends Base {
     super(smart, 'main');
     this.smart = smart;
 
-    this._programUpdate = this._programUpdate.bind(this);
-    this._deviceUpdate = this._deviceUpdate.bind(this);
-    this._weatherUpdate = this._weatherUpdate.bind(this);
+    this._programUpdate = Debounce(this._programUpdate, this);
+    this._deviceUpdate = Debounce(this._deviceUpdate, this);
+    this._weatherUpdate = Debounce(this._weatherUpdate, this);
   }
 
   main(ctx) {
@@ -60,6 +61,10 @@ class Main extends Base {
     return this.smart.unit === 'f' ? Math.round(v / 5 * 9 + 32) : Math.round(v * 2) / 2;
   }
 
+  toNU(v) {
+    return v === null ? '-' : this.toU(v);
+  }
+
   toC(v) {
     return this.smart.unit === 'f' ? Math.round(2 * (v - 32) / 9 * 5) / 2 : v;
   }
@@ -85,13 +90,13 @@ class Main extends Base {
     }
     const p = this.smart.currentProgram;
     this.state.thermostat = {
-      high: this.toU(p.programHighTempC),
-      low: this.toU(p.programLowTempC),
-      adjustedhigh: this.toU(p.adjustedHighTempC),
-      adjustedlow: this.toU(p.adjustedLowTempC),
-      current: this.toU(p.currentTemperatureC),
-      target: this.toU(p.targetTemperatureC),
-      remote: this.toU(this.smart.remoteTargetTemperatureC),
+      high: this.toNU(p.programHighTempC),
+      low: this.toNU(p.programLowTempC),
+      adjustedhigh: this.toNU(p.adjustedHighTempC),
+      adjustedlow: this.toNU(p.adjustedLowTempC),
+      current: this.toNU(p.currentTemperatureC),
+      target: this.toNU(p.targetTemperatureC),
+      remote: this.toNU(this.smart.remoteTargetTemperatureC),
       mode: this.smart.hold === p.program ? 'Override' :
             this.smart.restoreAwaySchedule ? 'Away' :
             p.targetMode === 1 ? 'Heat' :
@@ -155,6 +160,7 @@ class Main extends Base {
 
   async 'schedule.resume' (msg) {
     this.smart.resumeProgram({});
+    this.smart.onUpdateCallback();
   }
 
   async 'schedule.autoaway' (msg) {
