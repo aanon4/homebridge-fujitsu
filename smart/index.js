@@ -210,7 +210,8 @@ class Smart {
           this.currentProgram.targetMode = MODE_COOL;
         }
         else {
-          this.currentProgram.targetTemperatureC = null;
+          this.currentProgram.targetTemperatureC = this.remoteTargetTemperatureC;
+          this.currentProgram.targetMode = MODE_AUTO;
         }
         break;
     }
@@ -336,11 +337,10 @@ class Smart {
 
   setSchedule(name, schedule) {
     this.log.debug('setSchedule:', name, schedule);
-    const copy = [].concat(schedule);
-    copy.sort((a, b) => a.weektime - b.weektime + (a.trigger ? 0.5 : 0) - (b.trigger ? 0.5 : 0));
-    this.schedules[name] = copy;
+    schedule.sort((a, b) => a.weektime - b.weektime + (a.trigger ? 0.5 : 0) - (b.trigger ? 0.5 : 0));
+    this.schedules[name] = schedule;
     this.saveState();
-    Bus.emit('smart.schedule.update', name, copy);
+    Bus.emit('smart.schedule.update', name, schedule);
     this._updateProgram();
     this.onUpdateCallback();
   }
@@ -413,6 +413,16 @@ class Smart {
     return this.devices;
   }
 
+  setRemoteState(remote) {
+    if ('currentTemperatureC' in remote) {
+      this.referenceTemperature = remote.currentTemperatureC;
+    }
+    if ('targetTemperatureC' in remote) {
+      this.remoteTargetTemperatureC = remote.targetTemperatureC;
+    }
+    this._updateProgram();
+  }
+
   getProgram() {
     return this.currentProgram;
   }
@@ -432,14 +442,6 @@ class Smart {
       this.awaySchedule.enable = enable;
       this.saveState();
       Bus.emit('smart.program.update', this.currentProgram);
-    }
-  }
-
-  setReferenceTemperatures(refTemp, remoteTargetTemp) {
-    this.remoteTargetTemperatureC = remoteTargetTemp;
-    if (refTemp !== this.referenceTemperature) {
-      this.referenceTemperature = refTemp;
-      this._updateProgram();
     }
   }
 
