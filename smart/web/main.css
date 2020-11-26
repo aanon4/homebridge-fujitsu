@@ -89,6 +89,7 @@ body {
 }
 
 .schedule {
+  position: relative;
   color: white;
   font-size: 14px;
   margin-right: 28px;
