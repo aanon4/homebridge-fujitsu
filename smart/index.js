@@ -355,11 +355,13 @@ class Smart {
   setSchedule(name, schedule) {
     this.log.debug('setSchedule:', name, schedule);
     schedule.sort((a, b) => a.weektime - b.weektime + (a.trigger ? 0.5 : 0) - (b.trigger ? 0.5 : 0));
-    this.schedules[name] = schedule;
-    this.saveState();
-    Bus.emit('smart.schedule.update', name, schedule);
-    this._updateProgram();
-    this.onUpdateCallback();
+    if (JSON.stringify(schedule) != JSON.stringify(this.schedules[name], (k, v) => k === '_triggered' ? undefined : v)) {
+      this.schedules[name] = schedule;
+      this.saveState();
+      Bus.emit('smart.schedule.update', name, schedule);
+      this._updateProgram();
+      this.onUpdateCallback();
+    }
   }
 
   getSchedule(name) {
