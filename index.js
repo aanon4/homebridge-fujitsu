@@ -70,7 +70,9 @@ class Thermostat {
     this.informationService = new Service.AccessoryInformation();
     this.service = new Service.Thermostat(this.name);
     this.fan = new Service.Fanv2(`${this.name} Fan`);
-    this.filter = new Service.Fanv2(`${this.name} Filter`, '3CEAB23D-0374-4C93-9B63-2889C7B4D335');
+    if (config.includeFilter) {
+      this.filter = new Service.Fanv2(`${this.name} Filter`, '3CEAB23D-0374-4C93-9B63-2889C7B4D335');
+    }
 
     this.api = require('./fglairAPI.js')
     this.api.setLog(this.log);
@@ -154,7 +156,7 @@ class Thermostat {
             (hkstate.targetMode != FJ2HK[this.remote.operation_mode] ||
              hkstate.targetTemperatureC != parseInt(this.remote.adjust_temperature) / 10 ||
              (hkstate.targetFanState == HK_FAN_AUTO && this.remote.fan_speed != FJ_FAN_AUTO) ||
-             (hkstate.targetFanState == HK_FAN_MANUAL && this._mapFanSpeed(hk.targetFanSpeed) != this.remote.fan_speed))
+             (hkstate.targetFanState == HK_FAN_MANUAL && this._mapFanSpeed(hkstate.targetFanSpeed) != this.remote.fan_speed))
         ) {
           // Change made remotely - put program on hold
           this.log('*** pausing program');
@@ -332,14 +334,22 @@ class Thermostat {
       .getCharacteristic(Characteristic.RotationSpeed)
       .on('set', update);
 
-    this.filter
-      .getCharacteristic(Characteristic.RotationSpeed)
-      .on('set', this.setFilter.bind(this))
-      .on('get', this.getFilter.bind(this));
+    const linked = [ this.fan ];
+    const services = [ this.informationService, this.service, this.fan ];
+
+    if (this.filter) {
+      linked.push(this.filter);
+      services.push(this.filter);
+      this.filter
+        .getCharacteristic(Characteristic.RotationSpeed)
+        .on('set', this.setFilter.bind(this))
+        .on('get', this.getFilter.bind(this));
+    }
+
 
     this.service.isPrimaryService = true;
-    this.service.linkedServices = [ this.fan, this.filter ];
+    this.service.linkedServices = linked;
 
-    return [ this.informationService, this.service, this.fan, this.filter ];
+    return services;
   }
 }
