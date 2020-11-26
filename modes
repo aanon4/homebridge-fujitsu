@@ -1,0 +1,13 @@
+
+HK                          FGLair
+Mode    Fan     Speed       Mode    Fan
+
+Off     Auto    -           Off     -
+Off     Manual  0           Off     -
+Off     Manual  V           Fan     f(V)
+Heat    Auto    -           Heat    Auto
+Heat    Manual  V           Heat    f(V)
+Cool    Auto    -           Cool    Auto
+Cool    Manual  V           Cool    f(V)
+Auto    Auto    -           Auto    Auto
+Auto    Manual  V           Auto    f(V)

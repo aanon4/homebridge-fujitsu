@@ -3,10 +3,19 @@ const Path = require('path');
 const Feels = require('feels');
 const Bus = require('./bus');
 
-const MODE_OFF = 0;
-const MODE_COOL = 2;
-const MODE_HEAT = 1;
-const MODE_AUTO = 3;
+const FJ_OFF = 0;
+const FJ_AUTO = 2;
+const FJ_COOL = 3;
+const FJ_DRY = 4;
+const FJ_FAN = 5;
+const FJ_HEAT = 6;
+
+const HK_OFF = 0;
+const HK_COOL = 2;
+const HK_HEAT = 1;
+const HK_AUTO = 3;
+
+const FJ2HK = { [FJ_OFF]: HK_OFF, [FJ_AUTO]: HK_AUTO, [FJ_COOL]: HK_COOL, [FJ_DRY]: HK_OFF, [FJ_FAN]: HK_OFF, [FJ_HEAT]: HK_HEAT };
 
 const AUTOAWAY_START = 8 * 60; // 8am
 const AUTOAWAY_END = 21 * 60; // 9pm
@@ -26,7 +35,7 @@ class Smart {
       restore: null
     };
     this.currentProgram = {
-      targetMode: MODE_HEAT,
+      targetMode: HK_HEAT,
       currentTemperatureC: null,
       targetTemperatureC: null,
       programLowTempC: null,
@@ -37,8 +46,13 @@ class Smart {
       program: {}
     };
     this.hold = {};
+    this.airclean = {
+      enable: false,
+      speed: 50
+    };
     this.referenceTemperature = null;
     this.remoteTargetTemperatureC = null;
+    this.remoteTargetHeatingCoolingState = HK_HEAT;
     this.onUpdateCallback = null;
   }
 
@@ -60,6 +74,11 @@ class Smart {
     };
 
     this.loadState();
+
+    if (config.airclean && config.airclean.speed) {
+      this.airclean.speed = config.airclean.speed;
+    }
+
     this.web = require('./web/server');
     this.web.start(this, config);
 
@@ -120,19 +139,33 @@ class Smart {
   }
 
   _updateProgram() {
-    let adjustedLowTempC = null;
-    let adjustedHighTempC = null;
-
     // Generate a current temperature based on the temperature of the sensors.
     // These values are weighted, based on a schedule and/or motion associated
     // with the sensors.
-    this.currentProgram.currentTemperatureC = this.referenceTemperature;
+    const p = this.currentProgram;
+    p.currentTemperatureC = this.referenceTemperature;
     const program = this._getSchedule();
-    this.currentProgram.program = program;
-    if (this.referenceTemperature !== null && program && (program.low !== null || program.high !== null)) {
 
-      adjustedLowTempC = program.low;
-      adjustedHighTempC = program.high;
+    // No program to run
+    if (!program) {
+      p.targetMode = this.remoteTargetHeatingCoolingState || HK_OFF;
+      p.targetTemperatureC = this.remoteTargetTemperatureC;
+      p.program = null;
+      p.programLowTempC = null;
+      p.programHighTempC = null;
+      p.adjustedLowTempC = null;
+      p.adjustedHighTempC = null;
+      p.fanSpeed = 'auto';
+      return;
+    }
+
+    p.program = program;
+    p.programLowTempC = program.low;
+    p.programHighTempC = program.high;
+    p.adjustedLowTempC = program.low;
+    p.adjustedHighTempC = program.high;
+
+    if (this.referenceTemperature !== null) {
 
       let totalWeight = 0;
       let totalWeightedTemperature = 0;
@@ -153,71 +186,55 @@ class Smart {
       }
 
       if (totalWeight !== 0) {
-        this.currentProgram.currentTemperatureC = totalWeightedTemperature / totalWeight;
-        const currentTempDiffC = this.currentProgram.currentTemperatureC - this.referenceTemperature;
-        if (adjustedLowTempC !== null) {
-          adjustedLowTempC -= currentTempDiffC;
-        }
-        if (adjustedHighTempC !== null) {
-          adjustedHighTempC -= currentTempDiffC;
-        }
+        p.currentTemperatureC = totalWeightedTemperature / totalWeight;
+        const currentTempDiffC = p.currentTemperatureC - this.referenceTemperature;
+        p.adjustedLowTempC -= currentTempDiffC;
+        p.adjustedHighTempC -= currentTempDiffC;
       }
     }
 
     // Units of 0.5c
-    adjustedLowTempC = adjustedLowTempC !== null ? Math.round(adjustedLowTempC * 2) / 2 : null;
-    adjustedHighTempC = adjustedHighTempC !== null ? Math.round(adjustedHighTempC * 2) / 2 : null;
+    p.adjustedLowTempC = Math.round(p.adjustedLowTempC * 2) / 2;
+    p.adjustedHighTempC = Math.round(p.adjustedHighTempC * 2) / 2;
 
-    this.currentProgram.adjustedLowTempC = adjustedLowTempC;
-    this.currentProgram.adjustedHighTempC = adjustedHighTempC;
-    if (program) {
-      this.currentProgram.programLowTempC = program.low;
-      this.currentProgram.programHighTempC = program.high;
-
-      // Fan speed
-      this.currentProgram.fanSpeed = program.fan === 'auto' ? 'auto' : parseInt(program.fan);
-    }
+    // Fan speed
+    p.fanSpeed = program.fan === 'auto' ? 'auto' : parseInt(program.fan);
 
     // Heating or cooling mode?
-    if (adjustedLowTempC !== null && this.currentProgram.currentTemperatureC < adjustedLowTempC) {
-      // Too cold - heat
-      this.currentProgram.targetMode = (adjustedLowTempC === adjustedHighTempC ? MODE_AUTO : MODE_HEAT);
+    if (p.adjustedLowTempC === p.adjustedHighTempC) {
+      p.targetMode = HK_AUTO;
+      p.targetTemperatureC = p.adjustedLowTempC;
     }
-    else if (adjustedHighTempC !== null && this.currentProgram.currentTemperatureC > adjustedHighTempC) {
+    else if (p.currentTemperatureC < p.adjustedLowTempC) {
+      // Too cold - heat
+      p.targetMode = HK_HEAT;
+      p.targetTemperatureC = p.adjustedLowTempC;
+    }
+    else if (p.currentTemperatureC > p.adjustedHighTempC) {
       // Too hot - cool
-      this.currentProgram.targetMode = (adjustedLowTempC === adjustedHighTempC ? MODE_AUTO : MODE_COOL);
+      p.targetMode = HK_COOL;
+      p.targetTemperatureC = p.adjustedHighTempC;
     }
     else {
-      // Leave the targetMode 'as-is'
-    }
-
-    // Select the final targets
-    switch (this.currentProgram.targetMode) {
-      case MODE_HEAT:
-        this.currentProgram.targetTemperatureC = adjustedLowTempC;
-        break;
-      case MODE_COOL:
-        this.currentProgram.targetTemperatureC = adjustedHighTempC;
-        break;
-      case MODE_AUTO:
-        this.currentProgram.targetTemperatureC = adjustedHighTempC !== null ? adjustedHighTempC : adjustedLowTempC;
-        break;
-      case MODE_OFF:
-        // The mode can be off if we have no program, or because the program won't effect anything
-        // If the latter, guess (and let things correct later).
-        if (adjustedLowTempC !== null) {
-          this.currentProgram.targetTemperatureC = adjustedLowTempC;
-          this.currentProgram.targetMode = MODE_HEAT;
+      // No need to heat or cool. We may want to clean the air now
+      if (this.airclean.enable) {
+        p.targetMode = HK_OFF;
+        p.fanSpeed = this.airclean.speed;
+      }
+      else {
+        p.targetMode = this.remoteTargetHeatingCoolingState;
+        switch (p.targetMode) {
+          case HK_COOL:
+            p.targetTemperatureC = p.adjustedHighTempC;
+            break;
+          case HK_HEAT:
+            p.targetTemperatureC = p.adjustedLowTempC;
+            break;
+          default:
+            p.targetTemperatureC = this.remoteTargetTemperatureC;
+            break;
         }
-        else if (adjustedHighTempC !== null) {
-          this.currentProgram.targetTemperatureC = adjustedHighTempC;
-          this.currentProgram.targetMode = MODE_COOL;
-        }
-        else {
-          this.currentProgram.targetTemperatureC = this.remoteTargetTemperatureC;
-          this.currentProgram.targetMode = MODE_AUTO;
-        }
-        break;
+      }
     }
 
     Bus.emit('smart.program.update', this.currentProgram);
@@ -418,11 +435,14 @@ class Smart {
   }
 
   setRemoteState(remote) {
-    if ('currentTemperatureC' in remote) {
-      this.referenceTemperature = remote.currentTemperatureC;
+    if ('display_temperature' in remote) {
+      this.referenceTemperature = parseInt(remote.display_temperature) / 100 - 50;
     }
-    if ('targetTemperatureC' in remote) {
-      this.remoteTargetTemperatureC = remote.targetTemperatureC;
+    if ('adjust_temperature' in remote) {
+      this.remoteTargetTemperatureC = parseInt(remote.adjust_temperature) / 10;
+    }
+    if ('operation_mode' in remote) {
+      this.remoteTargetHeatingCoolingState = FJ2HK[remote.operation_mode];
     }
     this._updateProgram();
   }
@@ -449,12 +469,22 @@ class Smart {
     }
   }
 
+  setAirClean(enable) {
+    if (this.airclean.enable != enable) {
+      this.airclean.enable = enable;
+      this.saveState();
+      this._updateProgram();
+      this.onUpdateCallback();
+    }
+  }
+
   loadState() {
     try {
       const info = JSON.parse(FS.readFileSync(this.stateFile, { encoding: 'utf8' }));
       this.selectedSchedule = info.schedule.selected;
       this.schedules = info.schedule.schedules;
       this.awaySchedule.enable = info.autoaway ? info.autoaway.enable : false;
+      this.airclean = info.airclean || { enable: false, speed: 50 };
     }
     catch (_) {
       this.selectedSchedule = 'normal';
@@ -475,6 +505,10 @@ class Smart {
       },
       autoaway: {
         enable: this.awaySchedule.enable
+      },
+      airclean: {
+        enable: this.airclean.enable,
+        speed: this.airclean.speed
       }
     });
     FS.readFile(this.stateFile, { encoding: 'utf8' }, (e, info) => {

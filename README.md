@@ -48,7 +48,6 @@ This started life as an extension to the current mini-split module but with fan 
 | `model` _(optional)_ | Appears under "Model" for your accessory in the Home app |
 | `region` _(optional)_ | Region for thermostat, change for China & E.U. (Default: "us") |
 | `temperatureDisplayUnits` _(optional)_ | Celcius (0) or Fahrenheit (1) (Default: 0)
-| `excludeFan` _(optional)_ | Exclude the fan state when overriding program |
 | `smart` _(optional)_ | Smart configuration. |
 | `smart.miio` _(optional)_ | Use multiple temperature and occupancy sensors to adapted thermostat. Currently supports the `Mi Home` platform |
 | `smart.miio.username` | `Mi Home` Username |

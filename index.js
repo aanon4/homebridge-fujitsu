@@ -7,6 +7,8 @@
 // (c) 2020 Ryan Beggs, MIT License
 //
 
+const Debounce = require('./debounce');
+
 let Service;
 let Characteristic;
 let HbAPI;
@@ -26,7 +28,6 @@ const HK_AUTO = 3;
 const HK_FAN_MANUAL = 0;
 const HK_FAN_AUTO = 1;
 
-const HK_FAN_0 = 0;
 const HK_FAN_QUIET = 10;
 const HK_FAN_LOW = 30;
 const HK_FAN_MEDIUM = 60;
@@ -46,7 +47,7 @@ const FJ_FAN_HIGH = 3;
 const FJ_FAN_AUTO = 4;
 
 const FJ2HK = { [FJ_OFF]: HK_OFF, [FJ_AUTO]: HK_AUTO, [FJ_COOL]: HK_COOL, [FJ_DRY]: HK_OFF, [FJ_FAN]: HK_OFF, [FJ_HEAT]: HK_HEAT };
-const HK2FJ = { [HK_OFF]: FJ_OFF, [HK_HEAT]: FJ_HEAT, [HK_COOL]: FJ_COOL, [HK_AUTO]: FJ_AUTO };
+const FANFJ2HK = { [FJ_FAN_QUIET]: HK_FAN_QUIET, [FJ_FAN_LOW]: HK_FAN_LOW, [FJ_FAN_MEDIUM]: HK_FAN_MEDIUM, [FJ_FAN_HIGH]: HK_FAN_HIGH };
 
 const UNIT_C = 0;
 const UNIT_F = 1;
@@ -64,11 +65,12 @@ class Thermostat {
     this.userName = config.username || '';
     this.password = config.password || '';
     this.temperatureDisplayUnits = config.temperatureDisplayUnits ? UNIT_F : UNIT_C;
-    this.includeFan = !config.excludefan;
+    this.remote = {};
 
-    this.log.debug(this.name);
+    this.informationService = new Service.AccessoryInformation();
     this.service = new Service.Thermostat(this.name);
     this.fan = new Service.Fanv2(`${this.name} Fan`);
+
     this.api = require('./fglairAPI.js')
     this.api.setLog(this.log);
     this.api.setRegion(this.region);
@@ -83,7 +85,7 @@ class Thermostat {
           this.serial = data[0];
           this.smart = require('./smart');
           this.smart.start(config.smart, this.temperatureDisplayUnits, this.log, HbAPI, () => {
-            this.updateAll(this);
+            this.updateAll();
           }).catch(e => {
             this.log.error(e);
           });
@@ -92,194 +94,212 @@ class Thermostat {
     });
   }
 
-  updateAll(ctx) {
+  updateAll() {
     // Looks like the 'get_prop' call is necessary to update the current temperature
-    ctx.api.setDeviceProp(ctx.serial, 'get_prop', 1, () => {
-      ctx.api.getDeviceProp(ctx.serial, (err, properties) => {
+    this.api.setDeviceProp(this.serial, 'get_prop', 1, () => {
+      this.api.getDeviceProp(this.serial, (err, properties) => {
 
         if (err) {
-          ctx.log("Update Properties: " + err.message);
+          this.log("Update Properties: " + err.message);
           return;
         }
-        //ctx.log(JSON.stringify(properties, null, 2));
+        //this.log(JSON.stringify(properties, null, 2));
 
-        const remote = {
-          targetHeatingCoolingState: null,
-          targetTemperatureC: null,
-          targetFanSpeed: null,
-          targetFanState: null,
-          currentTemperatureC: null
-        };
         properties.forEach(prop => {
           switch (prop.property.name) {
             case 'adjust_temperature':
-              remote.targetTemperatureC = parseInt(prop.property.value) / 10;
+              this.remote.adjust_temperature = prop.property.value;
               break;
             case 'operation_mode':
-              remote.targetHeatingCoolingState = FJ2HK[prop.property.value];
+              this.remote.operation_mode = prop.property.value;
               break;
             case 'fan_speed':
-              switch (parseInt(prop.property.value)) {
-                case FJ_FAN_QUIET:
-                  remote.targetFanSpeed = HK_FAN_QUIET;
-                  remote.targetFanState = HK_FAN_MANUAL;
-                  break;
-                case FJ_FAN_LOW:
-                  remote.targetFanSpeed = HK_FAN_LOW;
-                  remote.targetFanState = HK_FAN_MANUAL;
-                  break;
-                case FJ_FAN_MEDIUM:
-                  remote.targetFanSpeed = HK_FAN_MEDIUM;
-                  remote.targetFanState = HK_FAN_MANUAL;
-                  break;
-                case FJ_FAN_HIGH:
-                  remote.targetFanSpeed = HK_FAN_HIGH;
-                  remote.targetFanState = HK_FAN_MANUAL;
-                  break;
-                case FJ_FAN_AUTO:
-                  remote.targetFanSpeed = HK_FAN_0;
-                  remote.targetFanState = HK_FAN_AUTO;
-                  break;
-                default:
-                  break;
-              }
+              this.remote.fan_speed = prop.property.value;
               break;
             case 'display_temperature':
-              remote.currentTemperatureC = parseInt(prop.property.value) / 100 - 50;
+              this.remote.display_temperature = prop.property.value;
               break;
             default:
               break;
           }
         });
-        ctx.smart.setRemoteState(remote);
-
-        const program = ctx.smart.getProgram();
+        this.smart.setRemoteState(this.remote);
+        const program = this.smart.getProgram();
         const hkstate = {
-          targetMode: ctx.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value,
-          targetTemperatureC: ctx.service.getCharacteristic(Characteristic.TargetTemperature).value,
-          targetFanState: ctx.fan.getCharacteristic(Characteristic.TargetFanState).value,
-          targetFanSpeed: ctx.fan.getCharacteristic(Characteristic.RotationSpeed).value
+          targetMode: this.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value,
+          targetTemperatureC: this.service.getCharacteristic(Characteristic.TargetTemperature).value,
+          targetFanState: this.fan.getCharacteristic(Characteristic.TargetFanState).value,
+          targetFanSpeed: this.fan.getCharacteristic(Characteristic.RotationSpeed).value
         };
 
-        //console.log('remote', remote);
-        //console.log('program', program);
-        //console.log('hk', hkstate);
+        this.log.debug('remote', this.remote);
+        this.log.debug('program', program);
+        this.log.debug('hk', hkstate);
 
-        if (ctx.smart.hold === program.program) {
-          ctx.log('*** program on hold');
+        if (this.smart.hold === program.program) {
+          this.log('*** program on hold');
           // Program on hold. Update local characteristics only
-          ctx.service.updateCharacteristic(Characteristic.TargetTemperature, remote.targetTemperatureC);
-          ctx.service.updateCharacteristic(Characteristic.TargetHeatingCoolingState, remote.targetHeatingCoolingState);
-          ctx.fan.updateCharacteristic(Characteristic.RotationSpeed, remote.targetFanSpeed);
-          ctx.fan.updateCharacteristic(Characteristic.TargetFanState, remote.targetFanState);
+          this.service.updateCharacteristic(Characteristic.TargetTemperature, parseInt(this.remote.adjust_temperature) / 10);
+          this.service.updateCharacteristic(Characteristic.TargetHeatingCoolingState, FJ2HK[this.remote.operation_mode]);
+          if (this.remote.fan_speed == FJ_FAN_AUTO) {
+            this.fan.updateCharacteristic(Characteristic.TargetFanState, HK_FAN_AUTO);
+          }
+          else {
+            this.fan.updateCharacteristic(Characteristic.TargetFanState, HK_FAN_MANUAL);
+            this.fan.updateCharacteristic(Characteristic.RotationSpeed, FANFJ2HK[this.remote.fan_speed]);
+          }
         }
-        // If 'hold' is null, we have set a program. If that's not what we read back then a remote override
-        // was made and we should honor it for a given hold time.
-        else if (ctx.smart.hold === null &&
-          (hkstate.targetMode != remote.targetHeatingCoolingState ||
-            hkstate.targetTemperatureC != remote.targetTemperatureC ||
-            (ctx.includeFan && (hkstate.targetFanState != remote.targetFanState || (hkstate.targetFanState === HK_FAN_MANUAL && hkstate.targetFanSpeed != remote.targetFanSpeed)))
-        )) {
+        else if (this.smart.hold === null && this.remote.operation_mode != FJ_FAN &&
+            (hkstate.targetMode != FJ2HK[this.remote.operation_mode] ||
+             hkstate.targetTemperatureC != parseInt(this.remote.adjust_temperature) / 10 ||
+             (hkstate.targetFanState == HK_FAN_AUTO && this.remote.fan_speed != FJ_FAN_AUTO) ||
+             (hkstate.targetFanState == HK_FAN_MANUAL && this._mapFanSpeed(hk.targetFanSpeed) != this.remote.fan_speed))
+        ) {
           // Change made remotely - put program on hold
-          ctx.log('*** pausing program');
-          ctx.smart.pauseProgram();
+          this.log('*** pausing program');
+          this.smart.pauseProgram();
         }
         else {
           // Update thermostat from program (use setCharacteristic so we call the relevant 'set' listeners)
-          if (program.targetTemperatureC != hkstate.targetTemperatureC) {
-            ctx.service.setCharacteristic(Characteristic.TargetTemperature, program.targetTemperatureC);
-          }
-          if (program.targetMode != hkstate.targetMode) {
-            ctx.service.setCharacteristic(Characteristic.TargetHeatingCoolingState, program.targetMode);
-          }
+          this.service.setCharacteristic(Characteristic.TargetTemperature, program.targetTemperatureC);
+          this.service.setCharacteristic(Characteristic.TargetHeatingCoolingState, program.targetMode);
 
-          // Set the fan if we always include it, or if this is a new program
-          if (ctx.includeFan || ctx.smart.hold !== null) {
-            if (program.fanSpeed === 'auto') {
-              if (hkstate.targetFanState !== HK_FAN_AUTO) {
-                ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_AUTO);
-              }
-            }
-            else {
-              if (hkstate.targetFanState !== HK_FAN_MANUAL) {
-                ctx.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_MANUAL);
-              }
-              if (hkstate.targetFanSpeed !== program.fanSpeed) {
-                ctx.fan.setCharacteristic(Characteristic.RotationSpeed, program.fanSpeed);
-              }
-            }
+          // Set the fan
+          if (program.fanSpeed === 'auto') {
+            this.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_AUTO);
           }
-          // Otherwise, just update the local state. This allows the fan to be changed without placing the
-          // current program on hold
           else {
-            ctx.fan.updateCharacteristic(Characteristic.RotationSpeed, remote.targetFanSpeed);
-            ctx.fan.updateCharacteristic(Characteristic.TargetFanState, remote.targetFanState);
+            this.fan.setCharacteristic(Characteristic.TargetFanState, HK_FAN_MANUAL);
+            this.fan.setCharacteristic(Characteristic.RotationSpeed, program.fanSpeed);
           }
 
           // Reset 'hold'. This indicates we have set a program and will allow us to check for remote overrides.
-          ctx.smart.resumeProgram();
-          ctx.log('*** setting program');
+          // We have to post this so we let the async charateristic changes happen first.
+          setTimeout(() => {
+            this.smart.resumeProgram();
+          }, 0);
+          this.log('*** setting program');
         }
 
-        ctx.service.updateCharacteristic(Characteristic.CurrentHeatingCoolingState, remote.targetHeatingCoolingState);
-        ctx.service.updateCharacteristic(Characteristic.CurrentTemperature, remote.currentTemperatureC);
-
-        ctx.log("[" + ctx.serial + "] temp: " + remote.targetTemperatureC + "C, mode: " + remote.targetHeatingCoolingState);
+        this.service.updateCharacteristic(Characteristic.CurrentHeatingCoolingState, FJ2HK[this.remote.operation_mode]);
+        this.service.updateCharacteristic(Characteristic.CurrentTemperature, parseInt(this.remote.display_temperature) / 100 - 50);
       });
     });
   }
 
-  setTargetHeatingCoolingState(val, cb) {
-    // Opening the home app set this value (for some reason) so don't actually do it unless it's different.
-    if (val === this.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value) {
-      cb(null);
-      return;
-    }
-    this.log.debug("Setting Target Mode to HK=" + val + " FJ=" + HK2FJ[val]);
-    this.smart.pauseProgram();
-    this.api.setDeviceProp(this.serial, 'operation_mode', HK2FJ[val], cb);
-  }
-
-  setTargetTemperature(val, cb) {
-    this.log.debug("Setting Temperature to " + val);
-    this.smart.setRemoteState({ targetTemperatureC: val });
-    this.smart.pauseProgram();
-    this.api.setDeviceProp(this.serial, 'adjust_temperature', Math.round(val * 2) * 5, cb);
-  }
-
-  setTargetFanState(val, cb) {
-    this.log.debug('setTargetFanState', val ? 'automatic' : 'manual');
-    if (this.includeFan) {
-      this.smart.pauseProgram();
-    }
-    if (val === HK_FAN_MANUAL) {
-      this.setRotationSpeed(this.fan.getCharacteristic(Characteristic.RotationSpeed).value, cb);
-    }
-    else {
-      // Automatic
-      this.api.setDeviceProp(this.serial, 'fan_speed', FJ_FAN_AUTO, cb);
-    }
-  }
-
-  setRotationSpeed(val, cb) {
-    this.log.debug('setRotationSpeed', val);
-    if (this.includeFan) {
-      this.smart.pauseProgram();
-    }
-    let fanSpeed;
+  _mapFanSpeed(val) {
     if (val <= HK_FAN_QUIET) {
-      fanSpeed = FJ_FAN_QUIET;
+      return FJ_FAN_QUIET;
     }
     else if (val <= HK_FAN_LOW) {
-      fanSpeed = FJ_FAN_LOW;
+      return FJ_FAN_LOW;
     }
     else if (val <= HK_FAN_MEDIUM) {
-      fanSpeed = FJ_FAN_MEDIUM;
+      return FJ_FAN_MEDIUM;
     }
     else {
-      fanSpeed = FJ_FAN_HIGH;
+      return FJ_FAN_HIGH;
     }
-    this.api.setDeviceProp(this.serial, 'fan_speed', fanSpeed, cb);
+  }
+
+  updateRemote() {
+    this.log.debug('updateRemote:');
+    const hkstate = {
+      targetMode: this.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value,
+      targetTemperatureC: this.service.getCharacteristic(Characteristic.TargetTemperature).value,
+      targetFanState: this.fan.getCharacteristic(Characteristic.TargetFanState).value,
+      targetFanSpeed: this.fan.getCharacteristic(Characteristic.RotationSpeed).value
+    };
+    this.log.debug(hkstate);
+
+    function mapTemp(val) {
+      return Math.round(val * 2) * 5;
+    }
+
+    const nremote = {
+      operation_mode: null,
+      adjust_temperature: null,
+      fan_speed: null
+    };
+    switch (this.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value) {
+      case HK_OFF:
+        if (this.fan.getCharacteristic(Characteristic.TargetFanState).value === HK_FAN_AUTO) {
+          nremote.operation_mode = FJ_OFF;
+        }
+        else {
+          const speed = this.fan.getCharacteristic(Characteristic.RotationSpeed).value;
+          if (speed === 0) {
+            nremote.operation_mode = FJ_OFF;
+          }
+          else {
+            nremote.operation_mode = FJ_FAN;
+            nremote.fan_speed = this._mapFanSpeed(speed);
+          }
+        }
+        break;
+      case HK_HEAT:
+        nremote.operation_mode = FJ_HEAT;
+        nremote.adjust_temperature = mapTemp(this.service.getCharacteristic(Characteristic.TargetTemperature).value);
+        if (this.fan.getCharacteristic(Characteristic.TargetFanState).value === HK_FAN_AUTO) {
+          nremote.fan_speed = FJ_FAN_AUTO;
+        }
+        else {
+          nremote.fan_speed = this._mapFanSpeed(this.fan.getCharacteristic(Characteristic.RotationSpeed).value);
+        }
+        break;
+      case HK_COOL:
+        nremote.operation_mode = FJ_COOL;
+        nremote.adjust_temperature = mapTemp(this.service.getCharacteristic(Characteristic.TargetTemperature).value);
+        if (this.fan.getCharacteristic(Characteristic.TargetFanState).value === HK_FAN_AUTO) {
+          nremote.fan_speed = FJ_FAN_AUTO;
+        }
+        else {
+          nremote.fan_speed = this._mapFanSpeed(this.fan.getCharacteristic(Characteristic.RotationSpeed).value);
+        }
+        break;
+      case HK_AUTO:
+      default:
+        nremote.operation_mode = FJ_AUTO;
+        nremote.adjust_temperature = mapTemp(this.service.getCharacteristic(Characteristic.TargetTemperature).value);
+        if (this.fan.getCharacteristic(Characteristic.TargetFanState).value === HK_FAN_AUTO) {
+          nremote.fan_speed = FJ_FAN_AUTO;
+        }
+        else {
+          nremote.fan_speed = mapFanSpeed(this.fan.getCharacteristic(Characteristic.RotationSpeed).value);
+        }
+        break;
+    }
+
+    // Remove properties we don't need to change
+    let pause = false;
+    for (let key in nremote) {
+      if (nremote[key] == this.remote[key]) {
+        nremote[key] = null;
+      }
+      else if (nremote[key] !== null) {
+        pause = true;
+      }
+    }
+
+    this.log.debug('changes', pause, nremote);
+
+    // Change remote
+    if (nremote.operation_mode !== null) {
+      this.remote.operation_mode = nremote.operation_mode;
+      this.api.setDeviceProp(this.serial, 'operation_mode', nremote.operation_mode, () => {});
+    }
+    if (nremote.adjust_temperature !== null) {
+      this.remote.adjust_temperature = nremote.adjust_temperature;
+      this.api.setDeviceProp(this.serial, 'adjust_temperature', nremote.adjust_temperature, () => {});
+    }
+    if (nremote.fan_speed !== null) {
+      this.remote.fan_speed = nremote.fan_speed;
+      this.api.setDeviceProp(this.serial, 'fan_speed', nremote.fan_speed, () => {});
+    }
+
+    if (pause) {
+      this.smart.pauseProgram();
+    }
   }
 
   setDisplayUnits(val, cb) {
@@ -290,7 +310,6 @@ class Thermostat {
   }
 
   getServices() {
-    this.informationService = new Service.AccessoryInformation();
     this.informationService
       .setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
       .setCharacteristic(Characteristic.Model, this.model);
@@ -308,25 +327,31 @@ class Thermostat {
       .on('set', this.setDisplayUnits.bind(this))
       .value = this.temperatureDisplayUnits;
 
+    const updateRemote = Debounce(this.updateRemote, this);
+    const update = (_, cb) => {
+      updateRemote();
+      cb(null);
+    }
+
     this.service
       .getCharacteristic(Characteristic.TargetHeatingCoolingState)
-      .on('set', this.setTargetHeatingCoolingState.bind(this));
+      .on('set', update);
 
     this.service
       .getCharacteristic(Characteristic.TargetTemperature)
-      .on('set', this.setTargetTemperature.bind(this));
+      .on('set', update);
 
     this.fan
       .getCharacteristic(Characteristic.TargetFanState)
-      .on('set', this.setTargetFanState.bind(this));
+      .on('set', update);
 
     this.fan
       .getCharacteristic(Characteristic.RotationSpeed)
-      .on('set', this.setRotationSpeed.bind(this));
+      .on('set', update);
 
     this.service.isPrimaryService = true;
-    this.service.linkedServices = [this.fan];
+    this.service.linkedServices = [ this.fan ];
 
-    return [this.informationService, this.service, this.fan];
+    return [ this.informationService, this.service, this.fan ];
   }
 }

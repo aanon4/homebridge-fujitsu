@@ -1,5 +1,5 @@
 const Base = require('./base');
-const Debounce = require('./debounce');
+const Debounce = require('../../debounce');
 const Template = require('./template');
 const Bus = require('../bus');
 
@@ -100,9 +100,11 @@ class Main extends Base {
       mode: this.smart.hold === p.program ? 'Override' :
             this.smart.restoreAwaySchedule ? 'Away' :
             p.targetMode === 1 ? 'Heat' :
-            p.targetMode === 2 ? 'Cool' : 'Off'
+            p.targetMode === 2 ? 'Cool' :
+            p.targetMode === 0 && p.fanSpeed ? 'Fan' : 'Off'
     };
     this.state.autoaway = this.smart.awaySchedule.enable;
+    this.state.airclean = this.smart.airclean.enable;
     const w = this.smart.weather && this.smart.weather.weather;
     if (w) {
       this.state.weather = {
@@ -165,7 +167,12 @@ class Main extends Base {
 
   async 'schedule.autoaway' (msg) {
     this.smart.setAutoAway(msg.enable);
-    this.state.autoaway = msg.enable;
+    this.updateState();
+    this.html('menu', Template.menu(this.state));
+  }
+
+  async 'schedule.airclean' (msg) {
+    this.smart.setAirClean(msg.enable);
     this.updateState();
     this.html('menu', Template.menu(this.state));
   }
