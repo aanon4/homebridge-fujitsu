@@ -70,6 +70,7 @@ class Thermostat {
     this.informationService = new Service.AccessoryInformation();
     this.service = new Service.Thermostat(this.name);
     this.fan = new Service.Fanv2(`${this.name} Fan`);
+    this.filter = new Service.Fanv2(`${this.name} Filter`, '3CEAB23D-0374-4C93-9B63-2889C7B4D335');
 
     this.api = require('./fglairAPI.js')
     this.api.setLog(this.log);
@@ -204,23 +205,13 @@ class Thermostat {
 
   updateRemote() {
     this.log.debug('updateRemote:');
-    const hkstate = {
-      targetMode: this.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value,
-      targetTemperatureC: this.service.getCharacteristic(Characteristic.TargetTemperature).value,
-      targetFanState: this.fan.getCharacteristic(Characteristic.TargetFanState).value,
-      targetFanSpeed: this.fan.getCharacteristic(Characteristic.RotationSpeed).value
-    };
-    this.log.debug(hkstate);
 
     function mapTemp(val) {
       return Math.round(val * 2) * 5;
     }
 
-    const nremote = {
-      operation_mode: null,
-      adjust_temperature: null,
-      fan_speed: null
-    };
+    const nremote = {};
+
     switch (this.service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value) {
       case HK_OFF:
         if (this.fan.getCharacteristic(Characteristic.TargetFanState).value === HK_FAN_AUTO) {
@@ -273,30 +264,13 @@ class Thermostat {
     // Remove properties we don't need to change
     let pause = false;
     for (let key in nremote) {
-      if (nremote[key] == this.remote[key]) {
-        nremote[key] = null;
-      }
-      else if (nremote[key] !== null) {
+      if (nremote[key] != this.remote[key]) {
+        this.remote[key] = nremote[key];
+        this.log.debug('change:', key, nremote[key]);
+        this.api.setDeviceProp(this.serial, key, nremote[key], () => {});
         pause = true;
       }
     }
-
-    this.log.debug('changes', pause, nremote);
-
-    // Change remote
-    if (nremote.operation_mode !== null) {
-      this.remote.operation_mode = nremote.operation_mode;
-      this.api.setDeviceProp(this.serial, 'operation_mode', nremote.operation_mode, () => {});
-    }
-    if (nremote.adjust_temperature !== null) {
-      this.remote.adjust_temperature = nremote.adjust_temperature;
-      this.api.setDeviceProp(this.serial, 'adjust_temperature', nremote.adjust_temperature, () => {});
-    }
-    if (nremote.fan_speed !== null) {
-      this.remote.fan_speed = nremote.fan_speed;
-      this.api.setDeviceProp(this.serial, 'fan_speed', nremote.fan_speed, () => {});
-    }
-
     if (pause) {
       this.smart.pauseProgram();
     }
@@ -307,6 +281,15 @@ class Thermostat {
     this.temperatureDisplayUnits = val ? UNIT_F : UNIT_C;
     this.smart.unit = this.temperatureDisplayUnits ? 'f' : 'c';
     cb(null);
+  }
+
+  setFilter(val, cb) {
+    this.smart.setAirClean(val);
+    cb(null);
+  }
+
+  getFilter(cb) {
+    cb(null, this.smart.airclean.speed);
   }
 
   getServices() {
@@ -349,9 +332,14 @@ class Thermostat {
       .getCharacteristic(Characteristic.RotationSpeed)
       .on('set', update);
 
-    this.service.isPrimaryService = true;
-    this.service.linkedServices = [ this.fan ];
+    this.filter
+      .getCharacteristic(Characteristic.RotationSpeed)
+      .on('set', this.setFilter.bind(this))
+      .on('get', this.getFilter.bind(this));
 
-    return [ this.informationService, this.service, this.fan ];
+    this.service.isPrimaryService = true;
+    this.service.linkedServices = [ this.fan, this.filter ];
+
+    return [ this.informationService, this.service, this.fan, this.filter ];
   }
 }

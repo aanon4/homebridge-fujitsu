@@ -104,7 +104,6 @@ class Main extends Base {
             p.targetMode === 0 && p.fanSpeed ? 'Fan' : 'Off'
     };
     this.state.autoaway = this.smart.awaySchedule.enable;
-    this.state.airclean = this.smart.airclean.enable;
     const w = this.smart.weather && this.smart.weather.weather;
     if (w) {
       this.state.weather = {
@@ -167,12 +166,6 @@ class Main extends Base {
 
   async 'schedule.autoaway' (msg) {
     this.smart.setAutoAway(msg.enable);
-    this.updateState();
-    this.html('menu', Template.menu(this.state));
-  }
-
-  async 'schedule.airclean' (msg) {
-    this.smart.setAirClean(msg.enable);
     this.updateState();
     this.html('menu', Template.menu(this.state));
   }

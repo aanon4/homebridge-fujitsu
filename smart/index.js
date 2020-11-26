@@ -48,7 +48,7 @@ class Smart {
     this.hold = {};
     this.airclean = {
       enable: false,
-      speed: 50
+      speed: 0
     };
     this.referenceTemperature = null;
     this.remoteTargetTemperatureC = null;
@@ -74,10 +74,6 @@ class Smart {
     };
 
     this.loadState();
-
-    if (config.airclean && config.airclean.speed) {
-      this.airclean.speed = config.airclean.speed;
-    }
 
     this.web = require('./web/server');
     this.web.start(this, config);
@@ -469,9 +465,10 @@ class Smart {
     }
   }
 
-  setAirClean(enable) {
-    if (this.airclean.enable != enable) {
-      this.airclean.enable = enable;
+  setAirClean(speed) {
+    if (this.airclean.speed != speed) {
+      this.airclean.enable = speed != 0;
+      this.airclean.speed = speed;
       this.saveState();
       this._updateProgram();
       this.onUpdateCallback();

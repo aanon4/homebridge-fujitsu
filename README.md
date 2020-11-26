@@ -57,7 +57,6 @@ This started life as an extension to the current mini-split module but with fan 
 | `smart.away.from` _(optional)_ | Start time for when auto-away can be activated (Default: 8am) |
 | `smart.away.to` _(optional)_ | End time for when auto-away can be activated (Default: 9pm) |
 | `smart.away.wait` _(optional)_ | How long since movement was detected before the away schedule is activated (Default: 60 minutes) |
-| `smart.airclean.speed` _(optional)_ | Fan speed when air clean mode is enabled (Default: 50) |
 | `smart.portnr` _(optional)_ | Port number for Web UI (Default: 8080) |
 | `smart.weather` _(optional)_ | If provided, allows the Web UI to display the current weather. Weather information is read from the OpenWeatherMap API. Provide one of `city`, `latLong`, `cityId` or `zipcode` |
 | `smart.weather.key` | OpenWeatherMap API key |
