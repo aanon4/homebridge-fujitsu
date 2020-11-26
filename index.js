@@ -149,7 +149,7 @@ class Thermostat {
             this.fan.updateCharacteristic(Characteristic.RotationSpeed, FANFJ2HK[this.remote.fan_speed]);
           }
         }
-        else if (this.smart.hold === null && this.remote.operation_mode != FJ_FAN &&
+        else if (this.smart.hold === null &&
             (hkstate.targetMode != FJ2HK[this.remote.operation_mode] ||
              hkstate.targetTemperatureC != parseInt(this.remote.adjust_temperature) / 10 ||
              (hkstate.targetFanState == HK_FAN_AUTO && this.remote.fan_speed != FJ_FAN_AUTO) ||
