@@ -352,10 +352,10 @@ class Smart {
     }
   }
 
-  setSchedule(name, schedule, force) {
+  setSchedule(name, schedule) {
     this.log.debug('setSchedule:', name, schedule);
     schedule.sort((a, b) => a.weektime - b.weektime + (a.trigger ? 0.5 : 0) - (b.trigger ? 0.5 : 0));
-    if (force || JSON.stringify(schedule) != JSON.stringify(this.schedules[name], (k, v) => k === '_triggered' ? undefined : v)) {
+    if (JSON.stringify(schedule) != JSON.stringify(this.schedules[name], (k, v) => k === '_triggered' ? undefined : v)) {
       this.schedules[name] = schedule;
       this.saveState();
       Bus.emit('smart.schedule.update', name, schedule);
@@ -390,7 +390,7 @@ class Smart {
     }
     const fromtimeend = fromtime + 24 * 60;
     const totimeend = totime + 24 * 60;
-    const schedule = this.schedules[this.selectedSchedule];
+    const schedule = [].concat(this.schedules[this.selectedSchedule]);
     for (let i = schedule.length - 1; i >= 0; i--) {
       const s = schedule[i];
       if (s.weektime >= totime && s.weektime < totimeend) {
@@ -414,7 +414,7 @@ class Smart {
         schedule.push(copy);
       }
     }
-    this.setSchedule(this.selectedSchedule, schedule, true);
+    this.setSchedule(this.selectedSchedule, schedule);
   }
 
   // Format: eg. 12:00am, 12:00pm, 1:10am, 2:05p

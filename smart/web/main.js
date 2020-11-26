@@ -10,6 +10,7 @@ class Main extends Base {
     this.smart = smart;
 
     this._programUpdate = Debounce(this._programUpdate, this);
+    this._scheduleUpdate = Debounce(this._scheduleUpdate, this);
     this._deviceUpdate = Debounce(this._deviceUpdate, this);
     this._weatherUpdate = Debounce(this._weatherUpdate, this);
   }
@@ -22,6 +23,7 @@ class Main extends Base {
   watch() {
     Bus.on('smart.devices.update', this._deviceUpdate);
     Bus.on('smart.program.update', this._programUpdate);
+    Bus.on('smart.schedule.update', this._scheduleUpdate);
     Bus.on('weather.update', this._weatherUpdate);
     this.updateState();
     this.html('thermostat', Template.thermostat(this.state));
@@ -31,6 +33,7 @@ class Main extends Base {
   unwatch() {
     Bus.off('smart.devices.update', this._deviceUpdate);
     Bus.off('smart.program.update', this._programUpdate);
+    Bus.off('smart.schedule.update', this._scheduleUpdate);
     Bus.off('weather.update', this._weatherUpdate);
   }
 
@@ -50,6 +53,10 @@ class Main extends Base {
     if (JSON.stringify(this.state.rooms) != before) {
       this.html('schedule', Template.schedule(this.state));
     }
+  }
+
+  _scheduleUpdate() {
+    this.html('schedule', Template.schedule(this.state));
   }
 
   _weatherUpdate() {
