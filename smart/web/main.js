@@ -56,6 +56,7 @@ class Main extends Base {
   }
 
   _scheduleUpdate() {
+    this.state.schedule = this._smart2visual(this.smart.getSchedule(this.state.selected));
     this.html('schedule', Template.schedule(this.state));
   }
 
