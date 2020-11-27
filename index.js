@@ -29,8 +29,8 @@ const HK_FAN_MANUAL = 0;
 const HK_FAN_AUTO = 1;
 
 const HK_FAN_QUIET = 10;
-const HK_FAN_LOW = 30;
-const HK_FAN_MEDIUM = 60;
+const HK_FAN_LOW = 40;
+const HK_FAN_MEDIUM = 70;
 const HK_FAN_HIGH = 100;
 
 const FJ_OFF = 0;
