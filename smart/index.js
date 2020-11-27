@@ -226,6 +226,10 @@ class Smart {
           case HK_HEAT:
             p.targetTemperatureC = p.adjustedLowTempC;
             break;
+          case HK_OFF:
+            p.targetMode = HK_HEAT;
+            p.targetTemperatureC = p.adjustedLowTempC;
+            break;
           default:
             p.targetTemperatureC = this.remoteTargetTemperatureC;
             break;
