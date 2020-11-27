@@ -418,7 +418,7 @@ class Smart {
       }
     }
     this.setSchedule(this.selectedSchedule, schedule);
-    Bus.emit('smart.schedule.update', name, schedule);
+    Bus.emit('smart.schedule.update', this.selectedSchedule, schedule);
   }
 
   // Format: eg. 12:00am, 12:00pm, 1:10am, 2:05p
