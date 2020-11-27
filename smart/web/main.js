@@ -65,7 +65,7 @@ class Main extends Base {
   }
 
   toU(v) {
-    return this.smart.unit === 'f' ? Math.round(v / 5 * 9 + 32) : Math.round(v * 2) / 2;
+    return this.smart.unit === 'f' ? Math.ceil(v / 5 * 9 + 32) : Math.ceil(v * 2) / 2;
   }
 
   toNU(v) {
@@ -73,7 +73,7 @@ class Main extends Base {
   }
 
   toC(v) {
-    return this.smart.unit === 'f' ? Math.round(2 * (v - 32) / 9 * 5) / 2 : v;
+    return this.smart.unit === 'f' ? Math.ceil(2 * (v - 32) / 9 * 5) / 2 : v;
   }
 
   updateState() {
