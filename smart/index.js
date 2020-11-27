@@ -362,7 +362,6 @@ class Smart {
     if (JSON.stringify(schedule) != JSON.stringify(this.schedules[name], (k, v) => k === '_triggered' ? undefined : v)) {
       this.schedules[name] = schedule;
       this.saveState();
-      Bus.emit('smart.schedule.update', name, schedule);
       this._updateProgram();
       this.onUpdateCallback();
     }
@@ -378,9 +377,9 @@ class Smart {
     if (this.selectedSchedule !== name && name in this.schedules) {
       this.selectedSchedule = name;
       this.saveState();
-      Bus.emit('smart.schedule.update', this.selectedSchedule, this.schedules[this.selectedSchedule]);
       this._updateProgram();
       this.onUpdateCallback();
+      Bus.emit('smart.schedule.update', this.selectedSchedule, this.schedules[this.selectedSchedule]);
     }
   }
 
@@ -419,6 +418,7 @@ class Smart {
       }
     }
     this.setSchedule(this.selectedSchedule, schedule);
+    Bus.emit('smart.schedule.update', name, schedule);
   }
 
   // Format: eg. 12:00am, 12:00pm, 1:10am, 2:05p
