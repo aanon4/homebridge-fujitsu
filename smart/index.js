@@ -206,10 +206,6 @@ class Smart {
       }
     }
 
-    // Units of 0.5c
-    p.adjustedLowTempC = Math.round(p.adjustedLowTempC * 2) / 2;
-    p.adjustedHighTempC = Math.round(p.adjustedHighTempC * 2) / 2;
-
     // Fan speed
     p.fanSpeed = program.fan === 'auto' ? 'auto' : parseInt(program.fan);
 
