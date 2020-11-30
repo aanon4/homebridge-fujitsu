@@ -133,8 +133,7 @@ class Smart {
     // with the sensors.
     const p = this.currentProgram;
     p.currentTemperatureC = this.referenceTemperature;
-    const currentProgram = this._getSchedule();
-    const program = this._ecoAdjustSchedule(currentProgram);
+    const program = this._getSchedule();
 
     // No program to run
     if (!program) {
@@ -149,13 +148,37 @@ class Smart {
       return;
     }
 
-    p.program = currentProgram;
+    p.program = program;
     p.programLowTempC = program.low;
     p.programHighTempC = program.high;
     p.adjustedLowTempC = program.low;
     p.adjustedHighTempC = program.high;
 
-    if (this.referenceTemperature !== null) {
+    const now = new Date();
+    const weekday = now.getDay();
+    const daytime = now.getHours() * 60 + now.getMinutes();
+
+    // Make eco adjustments if enabled
+    if (this.eco.enable &&
+        this.eco.days[weekday] &&
+        daytime >= (this.eco.from - this.eco.guard) && daytime <= this.eco.to)
+    {
+      if (daytime < this.eco.from) {
+        // Time within the guard period before eco starts. We bump the heat/cool temps during this
+        // period so we won't need to run the hvac later
+        p.adjustedLowTempC += this.eco.gDelta;
+        p.adjustedHighempC -= this.eco.gDelta;
+      }
+      else {
+        // Time in the eco period proper. Decrease the heat/cool temps to avoid running the hvac when
+        // it's expensive.
+        p.adjustedLowTempC -= this.eco.eDelta;
+        p.adjustedHighTempC += this.eco.eDelta;
+      }
+    }
+
+    // Make room temperature adjustments (if set)
+    if (this.referenceTemperature !== null && program.rooms.length) {
 
       let totalWeight = 0;
       let totalWeightedTemperature = 0;
@@ -295,44 +318,6 @@ class Smart {
       }
       pos = (pos + schedule.length - 1) % schedule.length;
     }
-  }
-
-  _ecoAdjustSchedule(program) {
-    this.log.debug('_ecoAdjustSchedule:');
-    const now = new Date();
-    const weekday = now.getDay();
-    const daytime = now.getHours() * 60 + now.getMinutes();
-
-    const eco = {
-      low: program.low,
-      high: program.high,
-      rooms: program.rooms,
-      fan: program.fan
-    };
-
-    if (!this.eco.enable) {
-      return eco;
-    }
-
-    // Time is within an eco period
-    if (this.eco.days[weekday] &&
-        daytime >= (this.eco.from - this.eco.guard) && daytime <= this.eco.to)
-    {
-      if (daytime < this.eco.from) {
-        // Time within the guard period before eco starts. We bump the heat/cool temps during this
-        // period so we won't need to run the hvac later
-        eco.low += this.eco.gDelta;
-        eco.high -= this.eco.gDelta;
-      }
-      else {
-        // Time in the eco period proper. Decrease the heat/cool temps to avoid running the hvac when
-        // it's expensive.
-        eco.low -= this.eco.eDelta;
-        eco.high += this.eco.eDelta;
-      }
-    }
-
-    return eco;
   }
 
   _checkAway() {
