@@ -140,7 +140,7 @@ class Thermostat {
         this.log.debug('hk', hkstate);
 
         if (this.smart.hold === program.program) {
-          this.log('*** program on hold');
+          this.log.debug('*** program on hold');
           // Program on hold. Update local characteristics only
           this.service.updateCharacteristic(Characteristic.TargetTemperature, parseInt(this.remote.adjust_temperature) / 10);
           this.service.updateCharacteristic(Characteristic.TargetHeatingCoolingState, FJ2HK[this.remote.operation_mode]);
@@ -159,7 +159,7 @@ class Thermostat {
              (hkstate.targetFanState == HK_FAN_MANUAL && this._mapFanSpeed(hkstate.targetFanSpeed) != this.remote.fan_speed))
         ) {
           // Change made remotely - put program on hold
-          this.log('*** pausing program');
+          this.log.debug('*** pausing program');
           this.smart.pauseProgram();
         }
         else {
@@ -181,7 +181,7 @@ class Thermostat {
           setTimeout(() => {
             this.smart.resumeProgram();
           }, 0);
-          this.log('*** setting program');
+          this.log.debug('*** setting program');
         }
 
         this.service.updateCharacteristic(Characteristic.CurrentHeatingCoolingState, FJ2HK[this.remote.operation_mode]);
