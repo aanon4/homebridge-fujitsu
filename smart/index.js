@@ -20,6 +20,10 @@ const FJ2HK = { [FJ_OFF]: HK_OFF, [FJ_AUTO]: HK_AUTO, [FJ_COOL]: HK_COOL, [FJ_DR
 const AUTOAWAY_START = 8 * 60; // 8am
 const AUTOAWAY_END = 21 * 60; // 9pm
 const AUTOAWAY_WAIT = 60; // 1 hour
+const AIRCLEAN_SPEED = 50;
+const ECO_START = 17 * 60;
+const ECO_END = 20 * 60;
+const ECO_GUARD = 30;
 
 class Smart {
 
@@ -522,9 +526,9 @@ class Smart {
       'vacation': [],
       'away': []
     };
-    this.awaySchedule = { enable: false, from: 8 * 60, to: 21 * 60, wait: 60 };
-    this.airclean = { enable: false, speed: 50 };
-    this.eco = { enable: false, days: {}, from: 17 * 60, to: 20 * 60, guard: 30, gDelta: 0.5, eDelta: 0 };
+    this.awaySchedule = { enable: false, from: AUTOAWAY_START, to: AUTOAWAY_END, wait: AUTOAWAY_WAIT };
+    this.airclean = { enable: false, speed: AIRCLEAN_SPEED };
+    this.eco = { enable: false, days: {}, from: ECO_START, to: ECO_END, guard: ECO_GUARD, gDelta: 0, eDelta: 0 };
     try {
       const info = JSON.parse(FS.readFileSync(this.stateFile, { encoding: 'utf8' }));
       if (info.schedule) {
