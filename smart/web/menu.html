@@ -1,24 +1,91 @@
-<div class="group">
-  <div>Schedules</div>
-  <a href="#" onclick="send('schedule.select', { schedule: 'normal' });">
-    <li>Normal{{#if (eq selected "normal")}} &checkmark;{{/if}}</li>
-  </a>
-  <a href="#" onclick="send('schedule.select', { schedule: 'vacation' });">
-    <li>Vacation{{#if (eq selected "vacation")}} &checkmark;{{/if}}</li>
-  </a>
-  <a href="#" onclick="send('schedule.select', { schedule: 'away' });">
-    <li>Away{{#if (eq selected "away")}} &checkmark;{{/if}}</li>
-  </a>
+<div id="config-menu">
+  <div class="group">
+    <div class="title">Schedules</div>
+    <a href="#" onclick="send('schedule.select', { schedule: 'normal' });">
+      <li>Normal{{#if (eq selected "normal")}} &checkmark;{{/if}}</li>
+    </a>
+    <a href="#" onclick="send('schedule.select', { schedule: 'vacation' });">
+      <li>Vacation{{#if (eq selected "vacation")}} &checkmark;{{/if}}</li>
+    </a>
+    <a href="#" onclick="send('schedule.select', { schedule: 'away' });">
+      <li>Away{{#if (eq selected "away")}} &checkmark;{{/if}}</li>
+    </a>
+  </div>
+  <div class="group">
+    <div class="title">Program</div>
+    <a href="#" onclick="send('schedule.resume');document.getElementById('menuToggleCheckbox').checked = false;">
+      <li>Resume</li>
+    </a>
+  </div>
+  {{#with autoaway}}
+  <div class="group">
+    <div class="title">Auto Away</div>
+    <a href="#" onclick="send('autoaway.update', { enable: {{#if enable}}false{{else}}true{{/if}} })">
+      <li>Enable{{#if enable}} &checkmark;{{/if}}</li>
+    </a>
+    <div class="field">From<input title="away start" type="time" value="{{from}}" onchange="send('autoaway.update', { from: time2mins(event.target.dataset.value || event.target.value) })"></div>
+    <div class="field">To<input title="away end" type="time" value="{{to}}" onchange="send('autoaway.update', { to: time2mins(event.target.dataset.value || event.target.value) })"></div>
+    <div class="field">Delay<input type="number" value="{{wait}}" onchange="send('autoaway.update', { wait: event.target.value })">mins</div>
+  </div>
+  {{/with}}
+  {{#with eco}}
+  <div class="group">
+    <div class="title">Peek Time</div>
+    <a href="#" onclick="send('eco.update', { enable: {{#if enable}}false{{else}}true{{/if}} });">
+      <li>Enable{{#if enable}} &checkmark;{{/if}}</li>
+    </a>
+    <div>
+      <div class="field">Days&nbsp;&nbsp;</div>
+      <div class="field">S<input type="checkbox" {{#if (lookup days 0)}}checked{{/if}} onchange="send('eco.update', { day: 0, enable: event.target.checked })"></div>
+      <div class="field">M<input type="checkbox" {{#if (lookup days 1)}}checked{{/if}} onchange="send('eco.update', { day: 1, enable: event.target.checked })"></div>
+      <div class="field">T<input type="checkbox" {{#if (lookup days 2)}}checked{{/if}} onchange="send('eco.update', { day: 2, enable: event.target.checked })"></div>
+      <div class="field">W<input type="checkbox" {{#if (lookup days 3)}}checked{{/if}} onchange="send('eco.update', { day: 3, enable: event.target.checked })"></div>
+      <div class="field">T<input type="checkbox" {{#if (lookup days 4)}}checked{{/if}} onchange="send('eco.update', { day: 4, enable: event.target.checked })"></div>
+      <div class="field">F<input type="checkbox" {{#if (lookup days 5)}}checked{{/if}} onchange="send('eco.update', { day: 5, enable: event.target.checked })"></div>
+      <div class="field">S<input type="checkbox" {{#if (lookup days 6)}}checked{{/if}} onchange="send('eco.update', { day: 6, enable: event.target.checked })"></div>
+    </div>
+    <div>
+      <div class="field">From<input title="peek start" type="time" value="{{from}}" onchange="send('eco.update', { from: time2mins(event.target.dataset.value || event.target.value) })"></div>
+      <div class="field">To<input title="peek end" type="time" value="{{to}}" onchange="send('eco.update', { to: time2mins(event.target.dataset.value || event.target.value) })"></div>
+      <div class="field">Guard<input type="number" value="{{guard}}" onchange="send('eco.update', { guard: event.target.value })">mins</div>
+    </div>
+    <div>
+      <div class="field">Guard Delta
+        <select onchange="send('eco.update', { gDelta: parseFloat(event.target.value) })">
+          {{#if (eq ../unit 'F')}}
+          <option {{#if (eq gDelta 0)}}selected{{/if}} value="0">0</option>
+          <option {{#if (eq gDelta 0.5)}}selected{{/if}} value="0.5">1</option>
+          <option {{#if (eq gDelta 1)}}selected{{/if}} value="1">2</option>
+          <option {{#if (eq gDelta 1.5)}}selected{{/if}} value="1.5">3</option>
+          {{else}}
+          <option {{#if (eq gDelta 0)}}selected{{/if}}>0</option>
+          <option {{#if (eq gDelta 0.5)}}selected{{/if}}>0.5</option>
+          <option {{#if (eq gDelta 1)}}selected{{/if}}>1</option>
+          <option {{#if (eq gDelta 1.5)}}selected{{/if}}>1.5</option>
+          {{/if}}
+        </select>
+        &deg;{{../unit}}</div>
+    </div>
+    <div>
+      <div class="field">Peek Delta
+        <select onchange="send('eco.update', { eDelta: parseFloat(event.target.value) })">
+          {{#if (eq ../unit 'F')}}
+          <option {{#if (eq eDelta 0)}}selected{{/if}} value="0">0</option>
+          <option {{#if (eq eDelta 0.5)}}selected{{/if}} value="0.5">1</option>
+          <option {{#if (eq eDelta 1)}}selected{{/if}} value="1">2</option>
+          <option {{#if (eq eDelta 1.5)}}selected{{/if}} value="1.5">3</option>
+          {{else}}
+          <option {{#if (eq eDelta 0)}}selected{{/if}}>0</option>
+          <option {{#if (eq eDelta 0.5)}}selected{{/if}}>0.5</option>
+          <option {{#if (eq eDelta 1)}}selected{{/if}}>1</option>
+          <option {{#if (eq eDelta 1.5)}}selected{{/if}}>1.5</option>
+          {{/if}}
+        </select>
+        &deg;{{../unit}}</div>
+    </div>
+  </div>
 </div>
-<div class="group">
-  <div>Program</div>
-  <a href="#" onclick="send('schedule.resume');">
-    <li>Resume</li>
-  </a>
-  <a href="#" onclick="send('schedule.autoaway', { enable: {{#if autoaway}}false{{else}}true{{/if}} });">
-    <li>Auto Away{{#if autoaway}} &checkmark;{{/if}}</li>
-  </a>
-</div>
-<a href="https://github.com/aanon4/homebridge-fujitsu" target="_blank">
-  <li>About</li>
-</a>
+{{/with}}
+<script>
+  polyTime(document, '#config-menu input[type=time]');
+</script>

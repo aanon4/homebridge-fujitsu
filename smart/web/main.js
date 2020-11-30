@@ -66,15 +66,30 @@ class Main extends Base {
   }
 
   toU(v) {
-    return this.smart.unit === 'f' ? Math.floor(v / 5 * 9 + 32) : Math.floor(v * 2) / 2;
+    return this.smart.unit === 'f' ? Math.round(v / 5 * 9 + 32) : Math.round(v * 2) / 2;
   }
 
   toNU(v) {
-    return v === null ? '-' : this.toU(v);
+    if (typeof v !== 'number') {
+      return '-';
+    }
+    else if (this.smart.unit === 'f') {
+      return Math.round(v / 5 * 9 + 32);
+    }
+    else {
+      return Math.round(v * 2) / 2;
+    }
   }
 
   toC(v) {
     return this.smart.unit === 'f' ? Math.ceil(2 * (v - 32) / 9 * 5) / 2 : v;
+  }
+
+  toT(wt) {
+    const t = wt % (24 * 60);
+    const h = `0${Math.floor(t / 60)}`.substr(-2);
+    const m = `0${t % 60}`.substr(-2);
+    return `${h}:${m}`;
   }
 
   updateState() {
@@ -111,7 +126,23 @@ class Main extends Base {
             p.targetMode === 2 ? 'Cool' :
             p.targetMode === 0 && p.fanSpeed ? 'Fan' : 'Off'
     };
-    this.state.autoaway = this.smart.awaySchedule.enable;
+    const away = this.smart.awaySchedule;
+    this.state.autoaway = {
+      enable: away.enable,
+      from: this.toT(away.from),
+      to: this.toT(away.to),
+      wait: away.wait
+    };
+    const eco = this.smart.eco;
+    this.state.eco = {
+      enable: eco.enable,
+      days: eco.days,
+      from: this.toT(eco.from),
+      to: this.toT(eco.to),
+      guard: eco.guard,
+      gDelta: eco.gDelta,
+      eDelta: eco.eDelta
+    };
     const w = this.smart.weather && this.smart.weather.weather;
     if (w) {
       this.state.weather = {
@@ -167,24 +198,24 @@ class Main extends Base {
     this.smart.copyScheduleDay(msg.from, msg.to);
   }
 
-  async 'schedule.resume' (msg) {
+  async 'schedule.resume' () {
     this.smart.resumeProgram({});
     this.smart.onUpdateCallback();
   }
 
-  async 'schedule.autoaway' (msg) {
-    this.smart.setAutoAway(msg.enable);
+  async 'autoaway.update' (msg) {
+    this.smart.setAutoAway(msg);
+    this.updateState();
+    this.html('menu', Template.menu(this.state));
+  }
+
+  async 'eco.update' (msg) {
+    this.smart.setEco(msg);
     this.updateState();
     this.html('menu', Template.menu(this.state));
   }
 
   _smart2visual(schedule) {
-    function toT(wt) {
-      const t = wt % (24 * 60);
-      const h = `0${Math.floor(t / 60)}`.substr(-2);
-      const m = `0${t % 60}`.substr(-2);
-      return `${h}:${m}`;
-    }
     const days = [
       { title: 'Sunday', sliders:[] },
       { title: 'Monday', sliders:[] },
@@ -197,7 +228,7 @@ class Main extends Base {
     schedule.forEach(sched => {
       const day = days[Math.floor(sched.weektime / (24 * 60))];
       day.sliders.push({
-        time: toT(sched.weektime),
+        time: this.toT(sched.weektime),
         low: this.toU(sched.low),
         high: this.toU(sched.high),
         trigger: sched.trigger && sched.trigger[0] && sched.trigger[0].room,

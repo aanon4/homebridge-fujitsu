@@ -85,18 +85,32 @@ onMessage['html.update'] = msg => {
 
 window.addEventListener('pageshow', runMessageManager);
 
+function time2mins(time) {
+  time = time.split(':');
+  return parseInt(time[0], 10) * 60 + parseInt(time[1], 10);
+}
+
+const inputTimeSupport = document.createElement('div');
+inputTimeSupport.innerHTML = '<input type="time" value="not-a-time">';
+if (inputTimeSupport.firstElementChild.value === 'not-a-time') {
+  window.polyTime = function(r, q) {
+    const times = r.querySelectorAll(q);
+    for (let i = 0; i < times.length; i++) {
+      if (!times[i].polyfill) {
+        new TimePolyfill(times[i]);
+      }
+    }
+  }
+}
+else {
+  window.polyTime = function() {}
+}
+
 // Sliders
 const SHED = 32;
 const transparentPixel = new Image(1,1);
 transparentPixel.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
-let sliderTimeSupport = document.createElement('div');
-sliderTimeSupport.innerHTML = '<input type="time" value="not-a-time">';
-if (sliderTimeSupport.firstElementChild.value === 'not-a-time') {
-  sliderTimeSupport = false;
-}
-else {
-  sliderTimeSupport = true;
-}
+
 function sliderSendUpdate(config) {
   send('slider.update', {
     id: config.id,
@@ -188,9 +202,7 @@ function sliderOnCreate(instance) {
   slider.addEventListener("drag", sliderDrag);
   const width = slider.parentElement.clientWidth;
   if (config.time) {
-    const time = config.time.split(':');
-    const mins = parseInt(time[0], 10) * 60 + parseInt(time[1], 10);
-    slider.style.left = `${100 * mins / (24 * 60)}%`;
+    slider.style.left = `${100 * time2mins(config.time) / (24 * 60)}%`;
   }
   else {
     slider.style.left = `${-SHED}px`;
@@ -213,12 +225,7 @@ function sliderOnShow(instance) {
 function sliderOnShown(instance) {
   const slider = instance.reference.parentElement;
   slider.addEventListener('change', sliderOnChange);
-  if (!sliderTimeSupport) {
-    const time = slider.querySelector('input[type=time]');
-    if (time && !time.polyfill) {
-      new TimePolyfill(time);
-    }
-  }
+  polyTime(slider, 'input[type=time]');
 }
 function sliderOnHide(instance) {
   const slider = instance.reference.parentElement;
@@ -230,9 +237,7 @@ function sliderOnHide(instance) {
     config.low = slider.querySelector('.slider-options .low').value;
     slider.querySelector('.temp.top').innerText = config.high != 0 ? config.high : '-';
     slider.querySelector('.temp.bottom').innerText = config.low != 0 ? config.low : '-';
-    const time = config.time.split(':');
-    const mins = parseInt(time[0], 10) * 60 + parseInt(time[1], 10);
-    slider.style.left = `${100 * mins / (24 * 60)}%`;
+    slider.style.left = `${100 * time2mins(config.time) / (24 * 60)}%`;
   }
   slider.removeEventListener('change', sliderOnChange);
   sliderSendUpdate(config);

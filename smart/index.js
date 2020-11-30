@@ -54,6 +54,7 @@ class Smart {
     this.remoteTargetTemperatureC = null;
     this.remoteTargetHeatingCoolingState = HK_HEAT;
     this.onUpdateCallback = null;
+    this.eco = [];
   }
 
   async start(config, unit, log, hbapi, onUpdate) {
@@ -64,14 +65,6 @@ class Smart {
     this.unit = unit ? 'f' : 'c';
     this.currentProgramUntil = 0;
     this.onUpdateCallback = onUpdate;
-
-    const away = config.away || { enable: false };
-    this.awaySchedule = {
-      enable: away.enable,
-      from: this._parseTime(away.from) || AUTOAWAY_START,
-      to: this._parseTime(away.to) || AUTOAWAY_END,
-      wait: away.wait || AUTOAWAY_WAIT
-    };
 
     this.loadState();
 
@@ -140,7 +133,8 @@ class Smart {
     // with the sensors.
     const p = this.currentProgram;
     p.currentTemperatureC = this.referenceTemperature;
-    const program = this._getSchedule();
+    const currentProgram = this._getSchedule();
+    const program = this._ecoAdjustSchedule(currentProgram);
 
     // No program to run
     if (!program) {
@@ -155,7 +149,7 @@ class Smart {
       return;
     }
 
-    p.program = program;
+    p.program = currentProgram;
     p.programLowTempC = program.low;
     p.programHighTempC = program.high;
     p.adjustedLowTempC = program.low;
@@ -301,6 +295,48 @@ class Smart {
       }
       pos = (pos + schedule.length - 1) % schedule.length;
     }
+  }
+
+  _ecoAdjustSchedule(program) {
+    this.log.debug('_ecoAdjustSchedule:');
+    const now = new Date();
+    const weekday = now.getDay();
+    const daytime = now.getHours() * 60 + now.getMinutes();
+
+    const eco = {
+      low: program.low,
+      high: program.high,
+      rooms: program.rooms,
+      fan: program.fan
+    };
+
+    if (!this.eco.enable) {
+      return eco;
+    }
+
+    console.log(this.eco, weekday, daytime);
+
+    // Time is within an eco period
+    if (this.eco.days[weekday] &&
+        daytime >= (this.eco.from - this.eco.guard) && daytime <= this.eco.to)
+    {
+      if (daytime < this.eco.from) {
+        // Time within the guard period before eco starts. We bump the heat/cool temps during this
+        // period so we won't need to run the hvac later
+        eco.low += this.eco.gDelta;
+        eco.high -= this.eco.gDelta;
+      }
+      else {
+        // Time in the eco period proper. Decrease the heat/cool temps to avoid running the hvac when
+        // it's expensive.
+        eco.low -= this.eco.eDelta;
+        eco.high += this.eco.eDelta;
+      }
+    }
+
+    console.log(program, eco);
+
+    return eco;
   }
 
   _checkAway() {
@@ -463,12 +499,27 @@ class Smart {
     Bus.emit('smart.program.update', this.currentProgram);
   }
 
-  setAutoAway(enable) {
-    if (this.awaySchedule.enable != enable) {
-      this.awaySchedule.enable = enable;
-      this.saveState();
-      Bus.emit('smart.program.update', this.currentProgram);
+  setAutoAway(config) {
+    [ 'enable', 'from', 'to', 'wait' ].forEach(key => {
+      if (key in config) {
+        this.awaySchedule[key] = config[key];
+      }
+    });
+    this.saveState();
+    Bus.emit('smart.program.update', this.currentProgram);
+  }
+
+  setEco(config) {
+    [ 'enable', 'from', 'to', 'guard', 'gDelta', 'eDelta' ].forEach(key => {
+      if (key in config) {
+        this.eco[key] = config[key];
+      }
+    });
+    if ('day' in config) {
+      this.eco.days[config.day] = config.enable;
     }
+    this.saveState();
+    Bus.emit('smart.program.update', this.currentProgram);
   }
 
   setAirClean(speed) {
@@ -482,22 +533,40 @@ class Smart {
   }
 
   loadState() {
+    this.selectedSchedule = 'normal';
+    this.schedules = {
+      'normal': [],
+      'vacation': [],
+      'away': []
+    };
+    this.awaySchedule = { enable: false, from: 8 * 60, to: 21 * 60, wait: 60 };
+    this.airclean = { enable: false, speed: 50 };
+    this.eco = { enable: false, days: {}, from: 17 * 60, to: 20 * 60, guard: 30, gDelta: 0.5, eDelta: 0 };
     try {
       const info = JSON.parse(FS.readFileSync(this.stateFile, { encoding: 'utf8' }));
-      this.selectedSchedule = info.schedule.selected;
-      this.schedules = info.schedule.schedules;
-      this.awaySchedule.enable = info.autoaway ? info.autoaway.enable : false;
-      this.airclean = info.airclean || { enable: false, speed: 50 };
+      if (info.schedule) {
+        if (info.schedule.selected) {
+          this.selectedSchedule = info.schedule.selected;
+        }
+        if (info.schedule.schedules) {
+          this.schedules = info.schedule.schedules;
+        }
+      }
+      if (info.autoaway && 'from' in info.autoaway) {
+        this.awaySchedule = info.autoaway;
+      }
+      if (info.airclean) {
+        this.airclean = info.airclean;
+      }
+      if (info.eco) {
+        this.eco = info.eco;
+      }
     }
     catch (_) {
-      this.selectedSchedule = 'normal';
-      this.schedules = {
-        'normal': [],
-        'vacation': [],
-        'away': []
-      };
     }
   }
+
+
 
   saveState() {
     const json = JSON.stringify({
@@ -506,13 +575,9 @@ class Smart {
         selected: this.selectedSchedule,
         schedules: this.schedules
       },
-      autoaway: {
-        enable: this.awaySchedule.enable
-      },
-      airclean: {
-        enable: this.airclean.enable,
-        speed: this.airclean.speed
-      }
+      autoaway: this.awaySchedule,
+      eco: this.eco,
+      airclean: this.airclean,
     });
     FS.readFile(this.stateFile, { encoding: 'utf8' }, (e, info) => {
       if (!e) {

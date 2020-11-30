@@ -268,7 +268,7 @@ nav {
   top: 0;
   left: 0;
   bottom: 0;
-  width: 301px;
+  width: 531px;
   overflow: hidden;
 }
 #menuToggle
@@ -293,7 +293,7 @@ nav {
 {
   color: tomato;
 }
-#menuToggle input
+#menuToggle > input
 {
   display: block;
   width: 40px;
@@ -336,7 +336,7 @@ nav {
  * Transform all the slices of hamburger
  * into a crossmark.
  */
-#menuToggle input:checked ~ span
+#menuToggle > input:checked ~ span
 {
   opacity: 1;
   transform: rotate(45deg) translate(-2px, -1px);
@@ -345,7 +345,7 @@ nav {
 /*
  * But let's hide the middle one.
  */
-#menuToggle input:checked ~ span:nth-last-child(3)
+#menuToggle > input:checked ~ span:nth-last-child(3)
 {
   opacity: 0;
   transform: rotate(0deg) scale(0.2, 0.2);
@@ -353,7 +353,7 @@ nav {
 /*
  * Ohyeah and the last one should go the other direction
  */
-#menuToggle input:checked ~ span:nth-last-child(2)
+#menuToggle > input:checked ~ span:nth-last-child(2)
 {
   transform: rotate(-45deg) translate(0, -1px);
 }
@@ -364,7 +364,7 @@ nav {
 #menu
 {
   position: absolute;
-  width: 200px;
+  width: 430px;
   height: 100%;
   margin: -100px 0 0 -50px;
   padding: 50px;
@@ -381,8 +381,7 @@ nav {
 }
 #menu li
 {
-  padding: 10px 0;
-  font-size: 20px;
+  padding: 6px 0;
 }
 /*
  * And let's slide it in from the left
@@ -393,15 +392,49 @@ nav {
 }
 #menu .group {
   margin-top: 20px;
+  margin-left: 10px;
+  color: #c0c0c0;
+  font-size: 18px;
+}
+#menu .group .title {
+  margin-left: -10px;
+  margin-bottom: 10px;
+  padding-bottom: 7px;
   color: #e0e0e0;
   font-size: 20px;
-}
-#menu .group > div {
-  margin-bottom: 10px;
+  border-bottom: #e0e0e0 1px solid;
 }
 #menu .group li {
   display: block;
-  margin-left: 15px;
   font-size: 18px;
 }
 
+#menu .group input,
+#menu .group select {
+  width: 80px;
+  background-color: #202020;
+  color: #c0c0c0;
+  font: inherit;
+  border: 1px solid #c0c0c0;
+  border-radius: 10px;
+  margin: 0 5px;
+  text-align: center;
+}
+#menu .group input::-webkit-outer-spin-button,
+#menu .group input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+#menu .group input[type=checkbox] {
+  width: 16px;
+}
+#menu .group select {
+  width: 30px;
+  padding-left: 10px;
+  -webkit-appearance: none;
+}
+#menu .group .field {
+  display: inline-block;
+  padding: 6px 0;
+  font-size: 14px;
+}
