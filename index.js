@@ -209,7 +209,7 @@ class Thermostat {
     this.log.debug('updateRemote:');
 
     function mapTemp(val) {
-      return Math.ceil(val * 2) * 5;
+      return Math.round(val * 2) * 5;
     }
 
     const nremote = {};
