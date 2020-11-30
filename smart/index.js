@@ -314,8 +314,6 @@ class Smart {
       return eco;
     }
 
-    console.log(this.eco, weekday, daytime);
-
     // Time is within an eco period
     if (this.eco.days[weekday] &&
         daytime >= (this.eco.from - this.eco.guard) && daytime <= this.eco.to)
@@ -333,8 +331,6 @@ class Smart {
         eco.high += this.eco.eDelta;
       }
     }
-
-    console.log(program, eco);
 
     return eco;
   }
