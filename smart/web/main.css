@@ -30,10 +30,27 @@ body {
   padding-left: 180px;
   text-align: center;
 }
-.thermostat .feelslike {
+.thermostat .small-temp .eco {
+  display: none;
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  font-size: 12px;
+  color: #a0a0a0;
+}
+.thermostat .small-temp .eco.true {
+  display: block;
+}
+.thermostat .small-temp .feelslike {
+  display: none;
   position: absolute;
   font-size: 12px;
-  margin: 35px 0 0 -45px;
+  bottom: 30px;
+  left: 48px;
+  color: #a0a0a0;
+}
+.thermostat .small-temp .feelslike.true {
+  display: block;
 }
 .thermostat .high,
 .thermostat .low {

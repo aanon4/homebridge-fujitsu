@@ -159,10 +159,7 @@ class Smart {
     const daytime = now.getHours() * 60 + now.getMinutes();
 
     // Make eco adjustments if enabled
-    if (this.eco.enable &&
-        this.eco.days[weekday] &&
-        daytime >= (this.eco.from - this.eco.guard) && daytime <= this.eco.to)
-    {
+    if (this.ecoActive()) {
       if (daytime < this.eco.from) {
         // Time within the guard period before eco starts. We bump the heat/cool temps during this
         // period so we won't need to run the hvac later
@@ -499,6 +496,15 @@ class Smart {
     Bus.emit('smart.program.update', this.currentProgram);
   }
 
+  ecoActive() {
+    const now = new Date();
+    const weekday = now.getDay();
+    const daytime = now.getHours() * 60 + now.getMinutes();
+    return this.eco.enable &&
+           this.eco.days[weekday] &&
+           daytime >= (this.eco.from - this.eco.guard) && daytime <= this.eco.to;
+  }
+
   setAirClean(speed) {
     if (this.airclean.speed != speed) {
       this.airclean.enable = speed != 0;
@@ -542,8 +548,6 @@ class Smart {
     catch (_) {
     }
   }
-
-
 
   saveState() {
     const json = JSON.stringify({

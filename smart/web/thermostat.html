@@ -1,6 +1,7 @@
 {{#with thermostat}}
 <div class="room-temp">{{current}} &deg;{{../unit}}</div>
 <div class="small-temp">
+  <div class="eco {{../eco/active}}">Eco</div>
   <div class="high" {{#unless (eq mode 'Off')}}title="Adjusted: {{adjustedhigh}}"{{/unless}}>{{#if (eq mode 'Off')}}-{{else}}{{high}}{{/if}}</div>
 </div>
 {{#if (eq mode 'Off')}}
@@ -11,6 +12,7 @@
 <div class="current">{{target}}</div>
 {{/if}}
 <div class="small-temp">
+  <div class="feelslike {{../feelsLike}}">Feels</div>
   <div class="low" {{#unless (eq mode 'Off')}}title="Adjusted: {{adjustedlow}}"{{/unless}}>{{#if (eq mode 'Off')}}-{{else}}{{low}}{{/if}}</div>
 </div>
 <div class="heating">{{mode}}</div>

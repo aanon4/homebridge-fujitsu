@@ -136,6 +136,7 @@ class Main extends Base {
     const eco = this.smart.eco;
     this.state.eco = {
       enable: eco.enable,
+      active: this.smart.ecoActive(),
       days: eco.days,
       from: this.toT(eco.from),
       to: this.toT(eco.to),
