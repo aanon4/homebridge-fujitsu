@@ -1,6 +1,6 @@
 {
   "name": "homebridge-fujitsu-smart",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "Homebridge accessory for Fujistu Mini-Split AC systems with smart temperature support using Xiaomi sensors",
   "main": "index.js",
   "scripts": {
