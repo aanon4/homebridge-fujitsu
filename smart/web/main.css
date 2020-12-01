@@ -412,8 +412,13 @@ nav {
 #menu .group {
   margin-top: 20px;
   margin-left: 10px;
-  color: #c0c0c0;
+  color: #404040;
   font-size: 18px;
+  transition: color 0.25s;
+}
+#menu .group:hover {
+  color: #c0c0c0;
+  transition: color 0.25s;
 }
 #menu .group .title {
   margin-left: -10px;
@@ -432,9 +437,9 @@ nav {
 #menu .group select {
   width: 80px;
   background-color: #202020;
-  color: #c0c0c0;
+  color: inherit;
   font: inherit;
-  border: 1px solid #c0c0c0;
+  border: 1px solid;
   border-radius: 10px;
   margin: 0 5px;
   text-align: center;
@@ -445,7 +450,17 @@ nav {
   margin: 0;
 }
 #menu .group input[type=checkbox] {
-  width: 16px;
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  margin: 0 8px 0 6px;
+  border: 1px solid;
+}
+#menu .group input[type=checkbox]:checked {
+  background-color: #404040;
+}
+#menu .group:hover input[type=checkbox]:checked {
+  background-color: #c0c0c0;
 }
 #menu .group select {
   width: 30px;
