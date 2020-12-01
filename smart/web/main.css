@@ -458,9 +458,11 @@ nav {
 }
 #menu .group input[type=checkbox]:checked {
   background-color: #404040;
+  transition: background-color 0.25s;
 }
 #menu .group:hover input[type=checkbox]:checked {
   background-color: #c0c0c0;
+  transition: background-color 0.25s;
 }
 #menu .group select {
   width: 30px;
