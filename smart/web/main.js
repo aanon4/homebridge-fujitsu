@@ -136,7 +136,7 @@ class Main extends Base {
     const eco = this.smart.eco;
     this.state.eco = {
       enable: eco.enable,
-      active: this.smart.ecoActive() && this.state.mode !== 'Override',
+      active: this.smart.ecoActive() && this.state.thermostat.mode !== 'Override',
       days: eco.days,
       from: this.toT(eco.from),
       to: this.toT(eco.to),
