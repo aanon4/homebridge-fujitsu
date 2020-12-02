@@ -43,8 +43,7 @@ Miio.prototype.updateDevices = async function(devices) {
           };
           break;
         case 'lumi.sensor_motion.aq2':
-          const lastmotion = now - JSON.parse(dev.event['event.motion']).timestamp;
-          const lastnomotion = now - JSON.parse(dev.event['event.no_motion']).timestamp;
+          const lastmotion = now - JSON.parse(dev.event['event.motion'] || '{}').timestamp;
           (devices[name] || (devices[name] = {})).motion = {
             online: dev.isOnline,
             motion: lastmotion < 1800,
@@ -52,8 +51,8 @@ Miio.prototype.updateDevices = async function(devices) {
           break;
         case 'lumi.sensor_magnet.v2':
         case 'lumi.sensor_magnet.aq2':
-          const lastopen = now - JSON.parse(dev.event['event.open']).timestamp;
-          const lastclose = now - JSON.parse(dev.event['event.close']).timestamp;
+          const lastopen = now - JSON.parse(dev.event['event.open'] || '{}').timestamp;
+          const lastclose = now - JSON.parse(dev.event['event.close'] || '{}').timestamp;
           (devices[name] || (devices[name] = {})).magnet = {
             online: dev.isOnline,
             open: lastopen < 1800,
