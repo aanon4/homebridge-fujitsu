@@ -94,7 +94,6 @@ class DataLog {
   }
 
   toFile() {
-    return;
     try {
       FS.writeFile(this.logFile, Pako.gzip(JSON.stringify(this.data)), e => {
         if (e) {
