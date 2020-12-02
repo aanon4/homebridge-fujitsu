@@ -29,6 +29,7 @@
     "node-mihome": "0.0.25",
     "node-persist": "^3.0.5",
     "openweather-apis": "^4.3.1",
+    "pako": "^2.0.2",
     "time-input-polyfill": "^1.0.9",
     "tippy.js": "^6.2.7"
   },

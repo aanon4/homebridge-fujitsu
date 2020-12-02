@@ -1,5 +1,6 @@
 const Path = require('path');
 const FS = require('fs');
+const Pako = require('pako');
 
 const LOG_KEEPTIME = 2 * (24 * 60 * 60 * 1000); // 2 days
 
@@ -10,7 +11,7 @@ class DataLog {
       debug: console.log,
       error: console.log
     };
-    this.logFile = './smart-log.json';
+    this.logFile = './smart-log.json.gz';
     this.data = {
       version: 1,
       items: []
@@ -21,7 +22,7 @@ class DataLog {
   start(smart, log, hbapi) {
     this.smart = smart;
     this.log = log;
-    this.logFile = Path.join(hbapi.user.persistPath(), 'smart-log.json');
+    this.logFile = Path.join(hbapi.user.persistPath(), 'smart-log.json.gz');
 
     this.fromFile();
   }
@@ -83,20 +84,23 @@ class DataLog {
 
   fromFile() {
     try {
-      this.data = JSON.parse(FS.readFileSync(this.logFile, { encoding: 'utf8' }));
+      this.data = JSON.parse(Pako.ungzip(FS.readFileSync(this.logFile), { to: 'string' }));
     }
     catch (_) {
     }
   }
 
   toFile() {
-    FS.writeFile(this.logFile, JSON.stringify(this.data), { encoding: 'utf8' }, e => {
-      if (e) {
-        this.log.error('Log:toFile:', e);
-      }
-    });
+    try {
+      FS.writeFile(this.logFile, Pako.gzip(JSON.stringify(this.data)), e => {
+        if (e) {
+          this.log.error('toFile:', e);
+        }
+      });
+    }
+    catch (_) {
+    }
   }
-
 }
 
 module.exports = new DataLog();
