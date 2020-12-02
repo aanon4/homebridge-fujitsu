@@ -2,6 +2,7 @@ const FS = require('fs');
 const Path = require('path');
 const Feels = require('feels');
 const Bus = require('./bus');
+const DataLog = require('./datalog');
 
 const FJ_OFF = 0;
 const FJ_AUTO = 2;
@@ -57,6 +58,7 @@ class Smart {
     this.referenceTemperature = null;
     this.remoteTargetTemperatureC = null;
     this.remoteTargetHeatingCoolingState = HK_HEAT;
+    this.remoteFanSpeed = null;
     this.onUpdateCallback = null;
     this.eco = [];
   }
@@ -67,7 +69,6 @@ class Smart {
     this.stateFile = Path.join(hbapi.user.persistPath(), 'smart-state.json');
     this.feelsLike = config.feelslike || false;
     this.unit = unit ? 'f' : 'c';
-    this.currentProgramUntil = 0;
     this.onUpdateCallback = onUpdate;
 
     this.loadState();
@@ -80,6 +81,8 @@ class Smart {
       await miio.login(config.miio, this.log);
       this.sensors = miio;
     }
+
+    DataLog.start(this, log, hbapi);
 
     const poll = () => {
       this._updateSensors().then(() => {
@@ -107,6 +110,10 @@ class Smart {
     if (this.web) {
       this.web.stop();
     }
+  }
+
+  done() {
+    DataLog.mark();
   }
 
   async _updateSensors() {
@@ -159,7 +166,6 @@ class Smart {
     p.adjustedHighTempC = program.high;
 
     const now = new Date();
-    const weekday = now.getDay();
     const daytime = now.getHours() * 60 + now.getMinutes();
 
     // Make eco adjustments if enabled
@@ -459,6 +465,9 @@ class Smart {
     }
     if ('operation_mode' in remote) {
       this.remoteTargetHeatingCoolingState = FJ2HK[remote.operation_mode];
+    }
+    if ('fan_speed' in remote) {
+      this.remoteFanSpeed = remote.fan_speed;
     }
     this._updateProgram();
   }

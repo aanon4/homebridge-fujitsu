@@ -186,6 +186,8 @@ class Thermostat {
 
         this.service.updateCharacteristic(Characteristic.CurrentHeatingCoolingState, FJ2HK[this.remote.operation_mode]);
         this.service.updateCharacteristic(Characteristic.CurrentTemperature, parseInt(this.remote.display_temperature) / 100 - 50);
+
+        this.smart.done();
       });
     });
   }
