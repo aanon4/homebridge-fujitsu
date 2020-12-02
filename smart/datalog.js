@@ -73,13 +73,16 @@ class DataLog {
         humidity: weather.humidity
       };
     };
-    this.log.debug(JSON.stringify(item, null, 2));
     const then = now - LOG_KEEPTIME;
     this.data.items.push(item);
     while (this.data.items[0].time < then) {
       this.data.items.shift();
     }
     this.toFile();
+  }
+
+  getItems() {
+    return this.data.items;
   }
 
   fromFile() {
@@ -91,6 +94,7 @@ class DataLog {
   }
 
   toFile() {
+    return;
     try {
       FS.writeFile(this.logFile, Pako.gzip(JSON.stringify(this.data)), e => {
         if (e) {

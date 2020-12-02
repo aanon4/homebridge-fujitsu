@@ -1,6 +1,7 @@
 const FS = require('fs');
 const Path = require('path');
 const Main = require('./main');
+const Graph = require('./graph');
 
 module.exports = (root, wsroot, smart) => {
 
@@ -8,18 +9,23 @@ module.exports = (root, wsroot, smart) => {
   const tippy = require.resolve('tippy.js');
   const timepoly = require.resolve('time-input-polyfill');
   const dnd = require.resolve('mobile-drag-drop');
+  const plotly = require.resolve('plotly.js-dist');
 
   const main = new Main(smart);
+  const graph = new Graph(smart);
   const pages = {
     '/':                          { fn: main.main },
     '/ws':                        { fn: main.ws },
+    '/graph':                     { fn: graph.main },
+    '/graphws':                   { fn: graph.ws },
     '/css/main.css':              { path: `${__dirname}/main.css`, type: 'text/css' },
     '/js/script.js':              { path: `${__dirname}/script.js`, type: 'text/javascript' },
     '/js/popper.js':              { path: Path.resolve(popper, `../../umd/popper.min.js`), type: 'text/javascript' },
     '/js/tippy.js':               { path: Path.resolve(tippy, `../tippy-bundle.umd.min.js`), type: 'text/javascript' },
     '/css/tippy.css':             { path: Path.resolve(tippy, `../tippy.css`), type: 'text/css' },
     '/js/time-input-polyfill.js': { path: Path.resolve(timepoly, `../dist/time-input-polyfill.min.js`), type: 'text/javascript' },
-    '/js/dnd-poly.js':            { path: Path.resolve(dnd, '../index.js'), type: 'text/javascript' }
+    '/js/dnd-poly.js':            { path: Path.resolve(dnd, '../index.js'), type: 'text/javascript' },
+    '/js/plotly.js':              { path: plotly, type: 'text/javascript' }
   }
 
   if (!process.env.DEBUG) {

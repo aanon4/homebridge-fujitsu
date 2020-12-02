@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=1080">
+    <link rel="stylesheet" href="/css/main.css" type="text/css">
+    <script src="/js/plotly.js"></script>
+    <script src="/js/script.js"></script>
+    <title>Smart Thermostat Graphs</title>
+  </head>
+  <body class="graph">
+    <div id="plot" class="plot"></div>
+    <script>
+      const config = {{{json config}}};
+      const data = {{{json data}}};
+      const layout = {{{json layout}}};
+      Plotly.newPlot('plot', data, layout, config);
+    </script>
+  </body>
+</html>

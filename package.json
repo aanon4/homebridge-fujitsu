@@ -26,10 +26,12 @@
     "koa-router": "^9.4.0",
     "koa-websocket": "^6.0.0",
     "mobile-drag-drop": "^2.3.0-rc.2",
+    "moment": "^2.29.1",
     "node-mihome": "0.0.25",
     "node-persist": "^3.0.5",
     "openweather-apis": "^4.3.1",
     "pako": "^2.0.2",
+    "plotly.js-dist": "^1.57.1",
     "time-input-polyfill": "^1.0.9",
     "tippy.js": "^6.2.7"
   },
