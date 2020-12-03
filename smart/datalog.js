@@ -1,6 +1,7 @@
 const Path = require('path');
 const FS = require('fs');
 const Pako = require('pako');
+const Workers = require('worker_threads');
 
 const LOG_KEEPTIME = 2 * (24 * 60 * 60 * 1000); // 2 days
 
@@ -94,15 +95,12 @@ class DataLog {
   }
 
   toFile() {
-    try {
-      FS.writeFile(this.logFile, Pako.gzip(JSON.stringify(this.data)), e => {
-        if (e) {
-          this.log.error('toFile:', e);
-        }
-      });
-    }
-    catch (_) {
-    }
+    new Workers.Worker(`${__dirname}/datalog-worker.js`, {
+      workerData: {
+        logFile: `${this.logFile}.test`,
+        data: this.data
+      }
+    });
   }
 }
 
