@@ -31,12 +31,14 @@ class Graph extends Base {
       yaxis: {
         color: FG,
         linecolor: FG,
-        domain: [ 0, 0.3 ]
+        domain: [ 0, 0.3 ],
+        ticksuffix: `&deg;${this.smart.unit.toUpperCase()}`
       },
       yaxis2: {
         color: FG,
         linecolor: FG,
-        domain: [ 0.35, 1 ]
+        domain: [ 0.35, 1 ],
+        ticksuffix: `&deg;${this.smart.unit.toUpperCase()}`
       },
       title: {
         text: 'Heating',
@@ -58,22 +60,22 @@ class Graph extends Base {
     }
 
     const target = {
-      name: 'Target',
+      name: 'Desired',
       x: [],
       y: [],
-      mode: 'line',
-      line: {
-        width: 3
-      }
+      mode: 'line'
     };
-    const reference = {
-      name: 'Measured',
+    const indoor = {
+      name: 'Indoor',
       x: [],
       y: [],
-      mode: 'line',
-      line: {
-        width: 3
-      }
+      mode: 'line'
+    };
+    const outdoor = {
+      name: 'Outdoor',
+      x: [],
+      y: [],
+      mode: 'line'
     };
     const temps = {};
     items.forEach(item => {
@@ -81,26 +83,29 @@ class Graph extends Base {
         const time = this.toT(item.time);
         target.x.push(time);
         target.y.push(this.toU(item.remote.target));
-        reference.x.push(time);
-        reference.y.push(this.toU(item.remote.temp));
+        indoor.x.push(time);
+        indoor.y.push(this.toU(item.remote.temp));
         if (device.environ) {
           const temp = temps[device.name] || (temps[device.name] = {
             name: device.name,
             x: [],
             y: [],
             mode: 'lines',
-            line: {
-              width: 1
-            },
             yaxis: 'y2'
           });
           temp.x.push(time),
           temp.y.push(this.toU(device.environ.temperature));
         }
+        if (item.weather) {
+          outdoor.x.push(time);
+          outdoor.y.push(this.toU(item.weather.temperature));
+        }
       });
     });
-    Object.values(temps).forEach(temp => this.state.data.push(temp));
-    this.state.data.push(target, reference);
+    const names = Object.keys(temps);
+    names.sort();
+    names.forEach(name => this.state.data.push(temps[name]));
+    this.state.data.push(target, indoor, outdoor);
   }
 
   toU(v) {
