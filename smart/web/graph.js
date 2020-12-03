@@ -2,6 +2,10 @@ const Moment = require('moment');
 const Base = require('./base');
 const DataLog = require('../datalog');
 
+const BG = '#303030';
+const FG = '#e0e0e0';
+
+
 class Graph extends Base {
 
   constructor(smart) {
@@ -15,8 +19,6 @@ class Graph extends Base {
   }
 
   updateGraph() {
-    const BG = '#303030';
-    const FG = '#e0e0e0';
 
     this.state.config = {
       responsive: true,
@@ -31,24 +33,66 @@ class Graph extends Base {
         'autoScale2d'
       ]
     };
+
+    this.state.data = [];
+    let names = [];
+    const items = DataLog.getItems();
+    if (items.length) {
+      const target = {
+        name: 'Desired',
+        x: [],
+        y: [],
+        mode: 'line'
+      };
+      const indoor = {
+        name: 'Indoor',
+        x: [],
+        y: [],
+        mode: 'line'
+      };
+      const outdoor = {
+        name: 'Outdoor',
+        x: [],
+        y: [],
+        mode: 'line'
+      };
+      const temps = {};
+      items.forEach(item => {
+        item.devices.forEach(device => {
+          const time = this.toT(item.time);
+          target.x.push(time);
+          target.y.push(this.toU(item.remote.target));
+          indoor.x.push(time);
+          indoor.y.push(this.toU(item.remote.temp));
+          if (device.environ) {
+            const temp = temps[device.name] || (temps[device.name] = {
+              name: device.name,
+              x: [],
+              y: [],
+              mode: 'lines',
+              yaxis: 'y2'
+            });
+            temp.x.push(time),
+            temp.y.push(this.toU(device.environ.temperature));
+          }
+          if (item.weather) {
+            outdoor.x.push(time);
+            outdoor.y.push(this.toU(item.weather.temperature));
+          }
+        });
+      });
+      names = Object.keys(temps);
+      names.sort();
+      names.forEach(name => this.state.data.push(temps[name]));
+      this.state.data.push(target, indoor, outdoor);
+    }
+
     this.state.layout = {
       paper_bgcolor: BG,
       plot_bgcolor: BG,
       xaxis: {
         color: FG,
         linecolor: FG,
-      },
-      yaxis: {
-        color: FG,
-        linecolor: FG,
-        domain: [ 0, 0.3 ],
-        ticksuffix: `&deg;${this.smart.unit.toUpperCase()}`
-      },
-      yaxis2: {
-        color: FG,
-        linecolor: FG,
-        domain: [ 0.35, 1 ],
-        ticksuffix: `&deg;${this.smart.unit.toUpperCase()}`
       },
       title: {
         text: 'Heating',
@@ -66,62 +110,23 @@ class Graph extends Base {
         r: 0,
         b: 40,
         l: 50
+      },
+      yaxis: {
+        color: FG,
+        linecolor: FG,
+        domain: [ 0, 1 ],
+        ticksuffix: `&deg;${this.smart.unit.toUpperCase()}`
       }
     };
-    this.state.data = [];
-
-    const items = DataLog.getItems();
-    if (!items.length) {
-      return;
+    if (names.length) {
+      this.state.layout.yaxis.domain = [ 0, 0.3 ];
+      this.state.layout.yaxis2 = {
+        color: FG,
+        linecolor: FG,
+        domain: [ 0.35, 1 ],
+        ticksuffix: `&deg;${this.smart.unit.toUpperCase()}`
+      };
     }
-
-    const target = {
-      name: 'Desired',
-      x: [],
-      y: [],
-      mode: 'line'
-    };
-    const indoor = {
-      name: 'Indoor',
-      x: [],
-      y: [],
-      mode: 'line'
-    };
-    const outdoor = {
-      name: 'Outdoor',
-      x: [],
-      y: [],
-      mode: 'line'
-    };
-    const temps = {};
-    items.forEach(item => {
-      item.devices.forEach(device => {
-        const time = this.toT(item.time);
-        target.x.push(time);
-        target.y.push(this.toU(item.remote.target));
-        indoor.x.push(time);
-        indoor.y.push(this.toU(item.remote.temp));
-        if (device.environ) {
-          const temp = temps[device.name] || (temps[device.name] = {
-            name: device.name,
-            x: [],
-            y: [],
-            mode: 'lines',
-            yaxis: 'y2'
-          });
-          temp.x.push(time),
-          temp.y.push(this.toU(device.environ.temperature));
-        }
-        if (item.weather) {
-          outdoor.x.push(time);
-          outdoor.y.push(this.toU(item.weather.temperature));
-        }
-      });
-    });
-    const names = Object.keys(temps);
-    names.sort();
-    names.forEach(name => this.state.data.push(temps[name]));
-    this.state.data.push(target, indoor, outdoor);
   }
 
   toU(v) {
