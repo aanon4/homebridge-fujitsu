@@ -8,6 +8,7 @@ This started life as an extension to the current mini-split module but with fan 
 ![UI](./assets/ui.png)
 ![Multiple Schedules](./assets/sched.png)
 ![Room Temps](./assets/sched2.png)
+![Graphs](./assets/graph.png)
 
 ## Installation
 
