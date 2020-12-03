@@ -95,6 +95,12 @@ class Thermostat {
         }
       });
     });
+
+    HbAPI.on('shutdown', () => {
+      if (this.smart) {
+        this.smart.stop();
+      }
+    });
   }
 
   updateAll() {

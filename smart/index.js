@@ -110,6 +110,7 @@ class Smart {
     if (this.web) {
       this.web.stop();
     }
+    DataLog.stop();
   }
 
   done() {

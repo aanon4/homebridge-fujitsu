@@ -4,6 +4,7 @@ const Pako = require('pako');
 const Workers = require('worker_threads');
 
 const LOG_KEEPTIME = 2 * (24 * 60 * 60 * 1000); // 2 days
+const LOG_COMMIT_PERIOD = 5 * 60 * 1000; // 5 minutes
 
 class DataLog {
 
@@ -18,6 +19,7 @@ class DataLog {
       items: []
     };
     this.smart = null;
+    this.timer = null;
   }
 
   start(smart, log, hbapi) {
@@ -26,6 +28,17 @@ class DataLog {
     this.logFile = Path.join(hbapi.user.persistPath(), 'smart-log.json.gz');
 
     this.fromFile();
+    this.timer = setInterval(() => {
+      this.toFile();
+    }, LOG_COMMIT_PERIOD);
+  }
+
+  stop() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+    this.toFile();
   }
 
   mark() {
@@ -79,7 +92,6 @@ class DataLog {
     while (this.data.items[0].time < then) {
       this.data.items.shift();
     }
-    this.toFile();
   }
 
   getItems() {
@@ -97,7 +109,7 @@ class DataLog {
   toFile() {
     new Workers.Worker(`${__dirname}/datalog-worker.js`, {
       workerData: {
-        logFile: `${this.logFile}.test`,
+        logFile: `${this.logFile}`,
         data: this.data
       }
     });
