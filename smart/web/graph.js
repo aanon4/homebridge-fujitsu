@@ -19,7 +19,17 @@ class Graph extends Base {
     const FG = '#e0e0e0';
 
     this.state.config = {
-      responsive: true
+      responsive: true,
+      displayModeBar: true,
+      modeBarButtonsToRemove: [
+        'toImage',
+        'toggleSpikelines',
+        'hoverClosestCartesian',
+        'hoverCompareCartesian',
+        'zoomIn2d',
+        'zoomOut2d',
+        'autoScale2d'
+      ]
     };
     this.state.layout = {
       paper_bgcolor: BG,
@@ -50,6 +60,12 @@ class Graph extends Base {
         font: {
           color: FG
         }
+      },
+      margin: {
+        t: 30,
+        r: 0,
+        b: 40,
+        l: 50
       }
     };
     this.state.data = [];
