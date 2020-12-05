@@ -5,7 +5,7 @@
   <div class="shed"></div>
   <div class="slide">
     {{#each sliders}}
-      <div id="slider-{{../title}}-{{@index}}" class="slider" style="display: none;left: 0px" draggable="true">
+      <div id="slider-{{../title}}-{{@index}}" class="slider" style="display: none;left: 0px" draggable="true" title="{{time}}">
         <div class="slider-inner">
           <div class="temp top">{{#if time}}{{high}}{{else}}-{{/if}}</div>
           <div class="temp bottom">{{#if time}}{{low}}{{else}}-{{/if}}</div>

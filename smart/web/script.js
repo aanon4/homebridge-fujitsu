@@ -89,6 +89,20 @@ function time2mins(time) {
   time = time.split(':');
   return parseInt(time[0], 10) * 60 + parseInt(time[1], 10);
 }
+function mins2time(mins) {
+  if (mins < 60) {
+    return `12:${`0${mins % 60}`.substr(-2)} AM`;
+  }
+  else if (mins < 12 * 60) {
+    return `${Math.floor(mins / 60)}:${`0${mins % 60}`.substr(-2)} AM`;
+  }
+  else if (mins < 13 * 60) {
+    return `12:${`0${mins % 60}`.substr(-2)} PM`;
+  }
+  else {
+    return `${Math.floor(mins / 60) - 12}:${`0${mins % 60}`.substr(-2)} PM`;
+  }
+}
 
 const inputTimeSupport = document.createElement('div');
 inputTimeSupport.innerHTML = '<input type="time" value="not-a-time">';
@@ -143,6 +157,7 @@ function sliderDrag(e) {
         time.polyfill.update();
       }
     }
+    slider.time = '';
     slider.querySelector('.temp.top').innerText = '-';
     slider.querySelector('.temp.bottom').innerText = '-';
     slider.style.left = `${x > -SHED ? x : -SHED}px`;
@@ -160,6 +175,7 @@ function sliderDrag(e) {
         time.polyfill.update();
       }
     }
+    slider.title = mins2time(mins);
     slider.querySelector('.temp.top').innerText = config.high != 0 ? config.high : '-';
     slider.querySelector('.temp.bottom').innerText = config.low != 0 ? config.low : '-';
     slider.style.left = `${100 * mins / (24 * 60)}%`;
@@ -202,7 +218,9 @@ function sliderOnCreate(instance) {
   slider.addEventListener("drag", sliderDrag);
   const width = slider.parentElement.clientWidth;
   if (config.time) {
-    slider.style.left = `${100 * time2mins(config.time) / (24 * 60)}%`;
+    const mins = time2mins(config.time);
+    slider.style.left = `${100 * mins / (24 * 60)}%`;
+    slider.title = mins2time(mins);
   }
   else {
     slider.style.left = `${-SHED}px`;
