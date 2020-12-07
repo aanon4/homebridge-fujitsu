@@ -186,7 +186,7 @@ class Smart {
     }
 
     // Make room temperature adjustments (if set)
-    if (this.referenceTemperature !== null && program.rooms.length) {
+    if (this.referenceTemperature !== null && Object.keys(program.rooms).length) {
 
       let totalWeight = 0;
       let totalWeightedTemperature = 0;
