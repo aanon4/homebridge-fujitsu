@@ -26,6 +26,8 @@ const ECO_START = 17 * 60;
 const ECO_END = 20 * 60;
 const ECO_GUARD = 30;
 
+const ADJUSTMENT_PERIOD = 15 * 60 * 1000; // 15 mins
+
 class Smart {
 
   constructor() {
@@ -60,7 +62,9 @@ class Smart {
     this.remoteTargetHeatingCoolingState = HK_HEAT;
     this.remoteFanSpeed = null;
     this.onUpdateCallback = null;
-    this.eco = [];
+    this.eco = { enable: false };
+    this.currentTempDiffC = 0;
+    this.nextAdjust = Date.now();
   }
 
   async start(config, unit, log, hbapi, onUpdate) {
@@ -186,7 +190,10 @@ class Smart {
     }
 
     // Make room temperature adjustments (if set)
-    if (this.referenceTemperature !== null && Object.keys(program.rooms).length) {
+    // Limit the frequently we calculate the adjustmemnt so we dont move the setpoint too often
+    if (this.referenceTemperature !== null && Object.keys(program.rooms).length && now >= this.nextAdjust) {
+
+      this.nextAdjust = now + ADJUSTMENT_PERIOD;
 
       let totalWeight = 0;
       let totalWeightedTemperature = 0;
@@ -207,12 +214,16 @@ class Smart {
       }
 
       if (totalWeight !== 0) {
-        p.currentTemperatureC = totalWeightedTemperature / totalWeight;
-        const currentTempDiffC = p.currentTemperatureC - this.referenceTemperature;
-        p.adjustedLowTempC -= currentTempDiffC;
-        p.adjustedHighTempC -= currentTempDiffC;
+        this.currentTempDiffC = totalWeightedTemperature / totalWeight - this.referenceTemperature;
+      }
+      else {
+        this.currentTempDiffC = 0;
       }
     }
+
+    p.currentTemperatureC = this.referenceTemperature + this.currentTempDiffC;
+    p.adjustedLowTempC -= this.currentTempDiffC;
+    p.adjustedHighTempC -= this.currentTempDiffC;
 
     // Fan speed
     p.fanSpeed = program.fan === 'auto' ? 'auto' : parseInt(program.fan);
