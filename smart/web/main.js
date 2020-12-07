@@ -117,7 +117,7 @@ class Main extends Base {
       low: this.toNU(p.programLowTempC),
       adjustedhigh: this.toNU(p.adjustedHighTempC),
       adjustedlow: this.toNU(p.adjustedLowTempC),
-      current: this.toNU(p.currentTemperatureC),
+      current: this.toNU(this.smart.referenceTemperature),
       target: this.toNU(p.targetTemperatureC),
       remote: this.toNU(this.smart.remoteTargetTemperatureC),
       mode: this.smart.hold === p.program ? 'Override' :
