@@ -217,6 +217,15 @@ class Smart {
     // Fan speed
     p.fanSpeed = program.fan === 'auto' ? 'auto' : parseInt(program.fan);
 
+    // Rounding
+    function r(val) {
+      return Math.round(val * 2) / 2;
+    }
+    p.programLowTempC = r(p.programLowTempC);
+    p.programHighTempC = r(p.programHighTempC);
+    p.adjustedLowTempC = r(p.adjustedLowTempC);
+    p.adjustedHighTempC = r(p.adjustedHighTempC);
+
     // Heating or cooling mode?
     if (p.adjustedLowTempC === p.adjustedHighTempC) {
       p.targetMode = HK_AUTO;
