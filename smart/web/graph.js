@@ -39,7 +39,7 @@ class Graph extends Base {
     const items = DataLog.getItems();
     if (items.length) {
       const target = {
-        name: 'Desired',
+        name: 'Setpoint',
         x: [],
         y: [],
         mode: 'line'
