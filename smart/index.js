@@ -64,7 +64,7 @@ class Smart {
     this.onUpdateCallback = null;
     this.eco = { enable: false };
     this.currentTempDiffC = 0;
-    this.nextAdjust = Date.now();
+    this.nextAdjust = 0;
   }
 
   async start(config, unit, log, hbapi, onUpdate) {
@@ -164,7 +164,6 @@ class Smart {
       return;
     }
 
-    p.program = program;
     p.programLowTempC = program.low;
     p.programHighTempC = program.high;
     p.adjustedLowTempC = program.low;
@@ -190,8 +189,13 @@ class Smart {
     }
 
     // Make room temperature adjustments (if set)
-    // Limit the frequently we calculate the adjustmemnt so we dont move the setpoint too often
-    if (this.referenceTemperature !== null && Object.keys(program.rooms).length && now >= this.nextAdjust) {
+    // Limit the frequently we calculate the adjustmemnt so we dont move the setpoint too often, but
+    // always update when we start a new program
+    if (this.referenceTemperature === null) {
+      this.currentTempDiffC = 0;
+      this.nextAdjust = 0;
+    }
+    else if (now >= this.nextAdjust || p.program !== program) {
 
       this.nextAdjust = now + ADJUSTMENT_PERIOD;
 
@@ -278,7 +282,9 @@ class Smart {
       }
     }
 
-    Bus.emit('smart.program.update', this.currentProgram);
+    p.program = program;
+
+    Bus.emit('smart.program.update', p);
 
     this.log.debug('_updateProgram: currentProgram:', JSON.stringify(this.currentProgram, null, 2));
   }
