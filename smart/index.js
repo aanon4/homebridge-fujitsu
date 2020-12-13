@@ -212,7 +212,7 @@ class Smart {
       this.currentTempDiffC = 0;
       this.nextAdjust = 0;
     }
-    else if (now >= this.nextAdjust || program !== lprogram) {
+    else if (now >= this.nextAdjust || p.program !== lprogram) {
 
       this.nextAdjust = now + ADJUSTMENT_PERIOD;
 
