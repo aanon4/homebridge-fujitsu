@@ -200,7 +200,7 @@ class Main extends Base {
   }
 
   async 'schedule.resume' () {
-    this.smart.resumeProgram({});
+    this.smart.resumeProgram(-1);
     this.smart.onUpdateCallback();
   }
 

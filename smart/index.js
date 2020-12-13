@@ -50,9 +50,9 @@ class Smart {
       adjustedLowTempC: null,
       adjustedHighTempC: null,
       fanSpeed: 'auto',
-      program: {}
+      program: 1
     };
-    this.hold = {};
+    this.hold = -1;
     this.airclean = {
       enable: false,
       speed: 0
@@ -65,6 +65,7 @@ class Smart {
     this.eco = { enable: false };
     this.currentTempDiffC = 0;
     this.nextAdjust = 0;
+    this.lastProgram = -1;
   }
 
   async start(config, unit, log, hbapi, onUpdate) {
@@ -151,11 +152,17 @@ class Smart {
     p.currentTemperatureC = this.referenceTemperature;
     const program = this._getSchedule();
 
+    // New program?
+    const lprogram = p.program;
+    if (this.lastProgram != program) {
+      this.lastProgram = program;
+      p.program++;
+    }
+
     // No program to run
     if (!program) {
       p.targetMode = this.remoteTargetHeatingCoolingState || HK_OFF;
       p.targetTemperatureC = this.remoteTargetTemperatureC;
-      p.program = null;
       p.programLowTempC = null;
       p.programHighTempC = null;
       p.adjustedLowTempC = null;
@@ -186,6 +193,16 @@ class Smart {
         p.adjustedLowTempC -= this.eco.eDelta;
         p.adjustedHighTempC += this.eco.eDelta;
       }
+      // Entered eco mode
+      if (!this.lastEco) {
+        this.lastEco = true;
+        p.program++;
+      }
+    }
+    else if (this.lastEco) {
+      // Leave eco mode
+      this.lastEco = false;
+      p.program++;
     }
 
     // Make room temperature adjustments (if set)
@@ -195,7 +212,7 @@ class Smart {
       this.currentTempDiffC = 0;
       this.nextAdjust = 0;
     }
-    else if (now >= this.nextAdjust || p.program !== program) {
+    else if (now >= this.nextAdjust || program !== lprogram) {
 
       this.nextAdjust = now + ADJUSTMENT_PERIOD;
 
@@ -281,8 +298,6 @@ class Smart {
         }
       }
     }
-
-    p.program = program;
 
     Bus.emit('smart.program.update', p);
 
@@ -509,7 +524,7 @@ class Smart {
   }
 
   resumeProgram(program) {
-    this.hold = program || null;
+    this.hold = program || 0;
     Bus.emit('smart.program.update', this.currentProgram);
   }
 

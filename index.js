@@ -158,7 +158,7 @@ class Thermostat {
             this.fan.updateCharacteristic(Characteristic.RotationSpeed, FANFJ2HK[this.remote.fan_speed]);
           }
         }
-        else if (this.smart.hold === null &&
+        else if (this.smart.hold === 0 &&
             (hkstate.targetMode != FJ2HK[this.remote.operation_mode] ||
              hkstate.targetTemperatureC != parseInt(this.remote.adjust_temperature) / 10 ||
              (hkstate.targetFanState == HK_FAN_AUTO && this.remote.fan_speed != FJ_FAN_AUTO) ||
@@ -185,7 +185,7 @@ class Thermostat {
           // Reset 'hold'. This indicates we have set a program and will allow us to check for remote overrides.
           // We have to post this so we let the async charateristic changes happen first.
           setTimeout(() => {
-            this.smart.resumeProgram();
+            this.smart.resumeProgram(0);
           }, 0);
           this.log.debug('*** setting program');
         }
