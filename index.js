@@ -282,6 +282,7 @@ class Thermostat {
       }
     }
     if (pause) {
+      this.smart.setRemoteState(this.remote);
       this.smart.pauseProgram();
     }
   }
