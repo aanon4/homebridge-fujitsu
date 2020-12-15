@@ -65,7 +65,7 @@ class Smart {
     this.eco = { enable: false };
     this.currentTempDiffC = 0;
     this.nextAdjust = 0;
-    this.lastProgram = -1;
+    this.lastProgram = null;
   }
 
   async start(config, unit, log, hbapi, onUpdate) {
@@ -524,7 +524,11 @@ class Smart {
   }
 
   resumeProgram(program) {
-    this.hold = program || 0;
+    this.hold = program;
+    if (program === -1) {
+      this.lastProgram = null;
+      this.lastEco = false;
+    }
     Bus.emit('smart.program.update', this.currentProgram);
   }
 
