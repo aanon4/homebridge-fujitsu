@@ -60,10 +60,10 @@ module.exports = (root, wsroot, smart) => {
 
   for (let name in pages) {
     if (name.endsWith('/ws')) {
-      wsroot.get(name, ctx => pages[name].get(ctx));
+      wsroot.get(name, pages[name].get);
     }
     else {
-      root.get(name, ctx => pages[name].get(ctx));
+      root.get(name, pages[name].get);
     }
   }
 }
