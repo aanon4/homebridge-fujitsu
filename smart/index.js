@@ -213,7 +213,6 @@ class Smart {
       this.nextAdjust = 0;
     }
     else if (now >= this.nextAdjust || p.program !== lprogram) {
-
       this.nextAdjust = now + ADJUSTMENT_PERIOD;
 
       let totalWeight = 0;
@@ -236,6 +235,7 @@ class Smart {
 
       if (totalWeight !== 0) {
         this.currentTempDiffC = totalWeightedTemperature / totalWeight - this.referenceTemperature;
+        this.log('Adjustment', this.currentTempDiffC, totalWeightedTemperature / totalWeight, this.referenceTemperature);
       }
       else {
         this.currentTempDiffC = 0;

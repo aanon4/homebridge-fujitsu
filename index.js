@@ -109,7 +109,7 @@ class Thermostat {
       this.api.getDeviceProp(this.serial, (err, properties) => {
 
         if (err) {
-          this.log("Update Properties: " + err.message);
+          this.log.error("Update Properties: " + err.message);
           return;
         }
         //this.log(JSON.stringify(properties, null, 2));
