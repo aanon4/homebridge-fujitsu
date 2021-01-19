@@ -91,10 +91,14 @@ class Smart {
 
     const poll = () => {
       this._updateSensors().then(() => {
-        this._checkAway();
-        this._updateProgram();
-        this.onUpdateCallback();
-        this.poller = setTimeout(poll, Math.max(0, 60000 - Date.now() % 60000));
+        try {
+          this._checkAway();
+          this._updateProgram();
+          this.onUpdateCallback();
+        }
+        finally {
+          this.poller = setTimeout(poll, Math.max(0, 60000 - Date.now() % 60000));
+        }
       });
     }
     poll();
