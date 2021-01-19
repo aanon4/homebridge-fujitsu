@@ -78,28 +78,39 @@ class Thermostat {
     this.api.setLog(this.log);
     this.api.setRegion(this.region);
 
-    this.api.getAuth(this.userName, this.password, (err, token) => {
-      this.api.setToken(token);
-      this.api.getDevices((err, data) => {
-        if (err) {
-          this.log.debug(err, data);
-        }
-        else {
-          this.serial = data[0];
-          this.smart = require('./smart');
-          this.smart.start(config.smart, this.temperatureDisplayUnits, this.log, HbAPI, () => {
-            this.updateAll();
-          }).catch(e => {
-            this.log.error(e);
-          });
-        }
-      });
-    });
+    this._startup(config);
 
     HbAPI.on('shutdown', () => {
       if (this.smart) {
         this.smart.stop();
       }
+    });
+  }
+
+  _startup(config) {
+    const retry = () => {
+      setTimeout(() => this._startup(), 60 * 1000);
+    }
+    this.api.getAuth(this.userName, this.password, (err, token) => {
+      if (err) {
+        retry();
+        return;
+      }
+      this.api.setToken(token);
+      this.api.getDevices((err, data) => {
+        if (err) {
+          this.log.debug(err, data);
+          retry();
+          return;
+        }
+        this.serial = data[0];
+        this.smart = require('./smart');
+        this.smart.start(config.smart, this.temperatureDisplayUnits, this.log, HbAPI, () => {
+          this.updateAll();
+        }).catch(e => {
+          this.log.error(e);
+        });
+      });
     });
   }
 
