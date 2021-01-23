@@ -161,17 +161,19 @@ var fglair = {
       });
       res.on('end', () => {
         if (res.statusCode == 200) {
-          let data_json = JSON.parse(data);
-          callback(null, data_json);
+          callback(null, JSON.parse(data));
         }
         else {
           //auth_token expired...
-          access_token = '';
           log.debug("Getting new token...");
-          fglair.getAuth(username, user_pwd, (err, data) => {
-            err = new Error("Auth expired");
-            log.error("Error: " + err.message);
-            callback(err);
+          fglair.getAuth(username, user_pwd, err => {
+            if (err) {
+              log.error("Auth Error: " + err);
+              callback(new Error("Auth expired"));
+            }
+            else {
+              fglair.getDeviceProp(dns, callback);
+            }
           });
         }
       });
@@ -210,36 +212,25 @@ var fglair = {
   getAuth: function (user, password, callback) {
     username = user;
     user_pwd = password;
-    if (!access_token) {
-      //var body = `{\r\n    \"user\": {\r\n        \"email\": \"${user}\",\r\n        \"application\":{\r\n            \"app_id\": \"CJIOSP-id\",\r\n            \"app_secret\": \"CJIOSP-Vb8MQL_lFiYQ7DKjN0eCFXznKZE\"\r\n        },\r\n        \"password\": \"${password}\"\r\n    }\r\n}`;
-      var body = `{\"user\": {\"email\": \"${user}\", \"application\":{\"app_id\": \"${appID.app_id}\",\"app_secret\": \"${appID.app_secret}\"},\"password\": \"${password}\"}}`;
-      const req = https.request(options_auth, (res) => {
-        log.debug(`statusCode: ${res.statusCode}`);
-        res.on('data', (d) => {
-          access_token = JSON.parse(d)['access_token'];
-          log.debug("API Access Token: " + access_token);
-          callback(null, access_token);
-        });
+    var body = `{\"user\": {\"email\": \"${user}\", \"application\":{\"app_id\": \"${appID.app_id}\",\"app_secret\": \"${appID.app_secret}\"},\"password\": \"${password}\"}}`;
+    const req = https.request(options_auth, (res) => {
+      log.debug(`statusCode: ${res.statusCode}`);
+      res.on('data', (d) => {
+        access_token = JSON.parse(d)['access_token'];
+        log.debug("API Access Token: " + access_token);
+        callback(null);
       });
-      req.on('error', (error) => {
-        log.error("Error: " + error);
-        callback(error, null);
-      });
-      req.write(body);
-      req.end();
-    }
-    else {
-      log.debug("API Using Access Token: " + access_token);
-      callback(null, access_token);
-    }
+    });
+    req.on('error', (error) => {
+      log.error("Error: " + error);
+      callback(error);
+    });
+    req.write(body);
+    req.end();
   },
 
   setLog: function (logfile) {
     log = logfile;
-  },
-
-  setToken: function (token) {
-    access_token = token;
   },
 
   setRegion: function (region) {

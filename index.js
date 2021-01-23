@@ -91,12 +91,11 @@ class Thermostat {
     const retry = () => {
       setTimeout(() => this._startup(), 60 * 1000);
     }
-    this.api.getAuth(this.userName, this.password, (err, token) => {
+    this.api.getAuth(this.userName, this.password, err => {
       if (err) {
         retry();
         return;
       }
-      this.api.setToken(token);
       this.api.getDevices((err, data) => {
         if (err) {
           this.log.debug(err, data);
